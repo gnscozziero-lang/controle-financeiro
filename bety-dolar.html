@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Controle Dólar — Bety</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f4f8;min-height:100vh;padding:24px 16px;color:#1a1a2e}
+.sheet{max-width:980px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden}
+
+/* setup banner */
+.setup-banner{background:#fef3c7;border-bottom:2px solid #f59e0b;padding:10px 18px;font-size:11.5px;color:#92400e;display:flex;align-items:center;gap:10px}
+.setup-banner strong{font-weight:700}
+.setup-banner.hidden{display:none}
+
+/* header */
+.hd{background:#1a1a2e;color:#fff;padding:16px 22px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.hdl small{font-size:9px;letter-spacing:.08em;text-transform:uppercase;opacity:.45;display:block}
+.hdl h1{font-size:18px;font-weight:500;letter-spacing:-.02em;margin-top:3px}
+.hdr{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.hd-btns{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.hbtn{height:27px;padding:0 12px;font-size:10.5px;font-weight:500;border-radius:6px;border:.5px solid rgba(255,255,255,.2);cursor:pointer;background:rgba(255,255,255,.07);color:#fff;white-space:nowrap}
+.hbtn:hover{background:rgba(255,255,255,.15)}
+.hdbal-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;opacity:.38;margin-bottom:1px;text-align:right}
+.hdbal-val{font-size:12px;line-height:1.6;opacity:.85;text-align:right}
+
+/* loading bar */
+.lbar{height:3px;background:linear-gradient(90deg,transparent,rgba(110,231,183,.6),transparent);background-size:200%;animation:sh 1s linear infinite;display:none}
+.lbar.on{display:block}
+@keyframes sh{0%{background-position:200%}100%{background-position:-200%}}
+
+/* form */
+.fs{background:#f7f7fb;border-bottom:1px solid #e8e8f0;padding:12px 18px;display:flex;flex-direction:column;gap:7px}
+.fs.em{border-left:3px solid #f59e0b;padding-left:15px}
+.fr{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fs select,.fs input[type="date"],.fs input[type="number"],.fs input[type="text"],.fs input:not([type]){font-size:12px;height:30px;padding:0 9px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
+.fs select:focus,.fs input:focus{border-color:#1a1a2e}
+.fd{width:116px}.fti{width:108px}.fqr{width:160px}.fvb{width:110px}.fco{width:130px}.fds{flex:1;min-width:200px}
+.usd-preview{font-size:11px;color:#059669;font-weight:600;white-space:nowrap;min-width:80px}
+.emlbl{font-size:10.5px;font-weight:500;color:#b45309;display:none;white-space:nowrap;margin-left:4px}
+.badd{height:30px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:none;cursor:pointer;background:#1a1a2e;color:#fff;flex-shrink:0}
+.badd.sv{background:#0f6e56}.badd:active{transform:scale(.98)}.badd:disabled{opacity:.5;cursor:not-allowed}
+.bcanc{height:30px;padding:0 11px;font-size:11.5px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:none;color:#666;flex-shrink:0;display:none}
+.bcanc:hover{border-color:#999;color:#333}
+
+/* filter bar */
+.fltbar{background:#fff;border-bottom:1px solid #e8e8f0;padding:8px 18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fltbar label{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#888;white-space:nowrap}
+.fltbar input,.fltbar select{font-size:11.5px;height:28px;padding:0 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
+.fltbar input:focus,.fltbar select:focus{border-color:#1a1a2e}
+.flt-de{width:110px}.flt-ate{width:110px}.flt-qr{width:160px}.flt-ord{width:180px}
+.flt-sep{width:1px;height:18px;background:#e0e0e0;margin:0 2px}
+.flt-count{font-size:10px;color:#888;margin-left:auto;white-space:nowrap}
+.flt-clr{height:26px;padding:0 10px;font-size:10.5px;border-radius:5px;border:1px solid #ddd;cursor:pointer;background:none;color:#888}
+.flt-clr:hover{border-color:#999;color:#333}
+.flt-active{border-color:#2563eb!important;background:#eff6ff!important}
+
+/* table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:#f7f7fb}
+th{padding:7px 8px;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #e8e8f0;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:#1a1a2e}
+th.sorted{color:#2563eb}
+th .arr{margin-left:3px;opacity:.5;font-size:9px}
+th.sorted .arr{opacity:1}
+td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;max-width:160px}
+.pill{display:inline-block;width:8px;height:8px;border-radius:50%}
+.pe{background:#10b981}.ps{background:#ef4444}
+.ve{color:#059669;font-weight:600}.vs{color:#dc2626;font-weight:600}
+.vb{color:#1d4ed8;font-weight:600}
+.bp{color:#059669;font-weight:600}.bn{color:#dc2626;font-weight:600}
+.bnd{font-size:10px;color:#aaa}
+.tx-val{color:#777;font-size:10.5px}
+.saldo-pos{color:#059669;font-size:10.5px;font-weight:600}
+.saldo-neg{color:#dc2626;font-size:10.5px;font-weight:600}
+.be{background:none;border:none;cursor:pointer;font-size:15px;padding:0 3px;opacity:.22;color:#333;line-height:1}
+.be:hover{opacity:1;color:#2563eb}
+.bdl{background:none;border:none;cursor:pointer;font-size:13px;padding:0 3px;opacity:.18;color:#333;line-height:1}
+.bdl:hover{opacity:1;color:#dc2626}
+.erow td{text-align:center;color:#aaa;padding:28px;font-size:12px}
+.editing-row{background:#eff6ff!important}
+tfoot tr td{background:#1a1a2e;color:#fff;padding:6px 8px;font-size:10.5px;font-weight:600;border:none;white-space:nowrap}
+tfoot tr td.sub-pos{color:#6ee7b7}
+tfoot tr td.sub-neg{color:#fca5a5}
+tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05em;text-transform:uppercase}
+
+/* summary */
+.sm{border-top:1px solid #e8e8f0;background:#f7f7fb}
+.smhd{padding:8px 18px 4px;font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#888;display:flex;align-items:center;gap:8px}
+.smhd .flt-tag{font-size:9px;padding:1px 7px;border-radius:10px;background:#dbeafe;color:#1d4ed8;font-weight:600}
+.smbd{padding:0 18px 8px}
+.smr{display:flex;align-items:baseline;gap:10px;font-size:11.5px;padding:4px 0;border-bottom:1px solid #eee}
+.smr:last-child{border-bottom:none}
+.sml{font-weight:600;color:#1a1a2e;min-width:160px;flex-shrink:0}
+.smv{display:flex;flex-wrap:wrap;gap:12px}
+.ch{font-size:11.5px}.pos{color:#059669;font-weight:600}.neg{color:#dc2626;font-weight:600}
+.smbrl{padding:8px 18px 10px;border-top:1px solid #e0e0ec;display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px}
+.smbrl-item{display:flex;flex-direction:column;gap:2px}
+.smbrl-lbl{font-size:8px;letter-spacing:.07em;text-transform:uppercase;color:#999}
+.smbrl-val{font-size:14px;font-weight:700}
+.tg{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600}
+.tgw{background:#fef3c7;color:#b45309}.tgs{background:#d1fae5;color:#065f46}
+
+/* status bar */
+.stbar{padding:5px 18px;font-size:9.5px;background:#f7f7fb;border-top:1px solid #e8e8f0;display:flex;justify-content:space-between;align-items:center;color:#888;flex-wrap:wrap;gap:4px}
+.sv-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#f59e0b;flex-shrink:0}
+.sv-ok{background:#10b981}.sv-err{background:#ef4444}.sv-ld{background:#f59e0b}
+
+@media(max-width:640px){
+  .hd{flex-direction:column;align-items:flex-start}.hdr{align-items:flex-start}
+  .fd,.fti,.fqr,.fvb,.fco{width:calc(50% - 3px)}.fds{width:100%}
+  table{font-size:10.5px}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- SETUP BANNER — remova após configurar o Supabase -->
+  <div class="setup-banner" id="setupBanner">
+    ⚠️ <strong>Configuração necessária:</strong> Substitua <code>COLE_SUA_URL_AQUI</code> e <code>COLE_SUA_CHAVE_AQUI</code> no início do script com as credenciais do seu projeto Supabase.
+  </div>
+
+  <div class="hd">
+    <div class="hdl">
+      <small>Controle de Dólar</small>
+      <h1>Entradas e Saídas USD</h1>
+    </div>
+    <div class="hdr">
+      <div class="hd-btns">
+        <button class="hbtn" onclick="exportJSON()">Backup JSON</button>
+        <label class="hbtn" style="cursor:pointer">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none" onchange="importJSON(event)"/></label>
+        <button class="hbtn" onclick="printReport()">Imprimir / PDF</button>
+      </div>
+      <div id="hdbal"></div>
+    </div>
+  </div>
+
+  <div class="lbar" id="lbar"></div>
+
+  <!-- FORM -->
+  <div class="fs" id="fs">
+    <div class="fr">
+      <input class="fd" type="date" id="fd"/>
+      <select class="fti" id="fti">
+        <option value="E">+ Entrada USD</option>
+        <option value="S">– Saída USD</option>
+      </select>
+      <input class="fqr" id="fqr" list="dlqr" placeholder="Quem Recebeu?" autocomplete="off"/>
+      <datalist id="dlqr"></datalist>
+      <input class="fvb" id="fvb" type="number" placeholder="Valor R$" min="0" step="0.01" oninput="calcUSD()"/>
+      <input class="fco" id="fco" type="number" placeholder="Cotação (R$/US$)" min="0" step="0.0001" oninput="calcUSD()"/>
+      <span class="usd-preview" id="usdprev"></span>
+      <span class="emlbl" id="emlbl">✎ Editando</span>
+      <button class="bcanc" id="bcanc" onclick="cancelEdit()">Cancelar</button>
+      <button class="badd" id="badd" onclick="submit()">+ Lançar</button>
+    </div>
+    <div class="fr">
+      <input class="fds" id="fds" placeholder="Descrição (opcional)"/>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="fltbar">
+    <label>De</label>
+    <input class="flt-de" type="date" id="flt-de" onchange="applyFilters()"/>
+    <label>Até</label>
+    <input class="flt-ate" type="date" id="flt-ate" onchange="applyFilters()"/>
+    <div class="flt-sep"></div>
+    <label>Quem</label>
+    <select class="flt-qr" id="flt-qr" onchange="applyFilters()">
+      <option value="">Todos</option>
+    </select>
+    <div class="flt-sep"></div>
+    <label>Ordenar</label>
+    <select class="flt-ord" id="flt-ord" onchange="applyFilters()">
+      <option value="data-asc">Data ↑ (mais antiga)</option>
+      <option value="data-desc">Data ↓ (mais recente)</option>
+      <option value="quem-data-asc">Quem Recebeu / Data ↑</option>
+      <option value="quem-data-desc">Quem Recebeu / Data ↓</option>
+    </select>
+    <button class="flt-clr" onclick="clearFilters()">Limpar filtros</button>
+    <span class="flt-count" id="flt-count"></span>
+  </div>
+
+  <!-- TABLE -->
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th style="width:14px;cursor:default"></th>
+        <th style="width:76px" onclick="toggleSort('data')" id="th-data">Data <span class="arr">↕</span></th>
+        <th style="width:130px" onclick="toggleSort('quem')" id="th-quem">Quem Recebeu? <span class="arr">↕</span></th>
+        <th style="width:140px">Descrição</th>
+        <th style="width:96px">Valor R$</th>
+        <th style="width:84px">Cotação</th>
+        <th style="width:90px">Valor USD</th>
+        <th style="width:94px">Saldo USD</th>
+        <th style="width:20px;cursor:default"></th>
+        <th style="width:20px;cursor:default"></th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+      <tfoot id="tf" style="display:none"><tr id="tf-row"></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="sm" id="sm" style="display:none"></div>
+
+  <div class="stbar">
+    <span style="display:flex;align-items:center;gap:6px">
+      <span class="sv-dot sv-ld" id="svdot"></span>
+      <span id="svlbl">Conectando...</span>
+    </span>
+    <span id="stinfo"></span>
+  </div>
+
+</div>
+<script>
+// ══════════════════════════════════════════════════════
+// ▶ SUBSTITUA ESTAS DUAS LINHAS COM SUAS CREDENCIAIS
+const SUPA_URL = 'https://orlwaiqtgeimxhcmhvla.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybHdhaXF0Z2VpbXhoY21odmxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwODQwODAsImV4cCI6MjA5MTY2MDA4MH0.CJ9MXvjrfgsK8YJmpNJpLj8NuoRVOrsvsrcpMSaEFOY';
+// ══════════════════════════════════════════════════════
+
+const {createClient} = supabase;
+const db = createClient(SUPA_URL, SUPA_KEY);
+
+let rows = [], editId = null;
+const g = id => document.getElementById(id);
+const fmt2 = v => Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmt4 = v => Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:4, maximumFractionDigits:4});
+const isoD = iso => { if(!iso) return '—'; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+
+// Verify setup
+if (SUPA_URL === 'COLE_SUA_URL_AQUI' || SUPA_KEY === 'COLE_SUA_CHAVE_AQUI') {
+  g('setupBanner').classList.remove('hidden');
+} else {
+  g('setupBanner').classList.add('hidden');
+}
+
+g('fd').value = todayISO();
+
+// ── SAVE STATUS ───────────────────────────────────────
+function setSave(state, msg) {
+  g('svdot').className = 'sv-dot sv-' + state;
+  g('svlbl').textContent = msg;
+}
+
+// ── RUNNING SALDO ─────────────────────────────────────
+function computeSaldos() {
+  const sorted = [...rows].sort((a, b) => {
+    if (a.data !== b.data) return a.data < b.data ? -1 : 1;
+    return a.id - b.id;
+  });
+  let saldo = 0;
+  const map = {};
+  sorted.forEach(r => {
+    saldo += r.tipo === 'E' ? r.valor_usd : -r.valor_usd;
+    map[r.id] = saldo;
+  });
+  return map;
+}
+
+function currentSaldo() {
+  const map = computeSaldos();
+  const ids = Object.keys(map);
+  if (!ids.length) return 0;
+  return map[ids[ids.length - 1]];
+}
+
+// ── FILTERS ───────────────────────────────────────────
+function getFiltered() {
+  const de = g('flt-de').value, ate = g('flt-ate').value, qr = g('flt-qr').value;
+  let res = rows.filter(r => {
+    if (de && r.data < de) return false;
+    if (ate && r.data > ate) return false;
+    if (qr && (r.quem_recebeu || '') !== qr) return false;
+    return true;
+  });
+  const ord = g('flt-ord').value;
+  const byQuem = ord.startsWith('quem');
+  const desc = ord.endsWith('desc');
+  res.sort((a, b) => {
+    if (byQuem) {
+      const qa = (a.quem_recebeu || '').toLowerCase(), qb = (b.quem_recebeu || '').toLowerCase();
+      if (qa !== qb) return qa < qb ? -1 : 1;
+    }
+    if (a.data !== b.data) return (a.data < b.data ? -1 : 1) * (desc ? -1 : 1);
+    return (a.id - b.id) * (desc ? -1 : 1);
+  });
+  return res;
+}
+
+function applyFilters() {
+  const de = g('flt-de').value, ate = g('flt-ate').value, qr = g('flt-qr').value;
+  g('flt-de').classList.toggle('flt-active', !!de);
+  g('flt-ate').classList.toggle('flt-active', !!ate);
+  g('flt-qr').classList.toggle('flt-active', !!qr);
+  render();
+}
+
+function clearFilters() {
+  g('flt-de').value = ''; g('flt-ate').value = ''; g('flt-qr').value = '';
+  g('flt-ord').value = 'data-asc';
+  ['flt-de','flt-ate','flt-qr'].forEach(id => g(id).classList.remove('flt-active'));
+  render();
+}
+
+function toggleSort(key) {
+  const ord = g('flt-ord');
+  if (key === 'data') {
+    ord.value = ord.value === 'data-asc' ? 'data-desc' : 'data-asc';
+  } else {
+    ord.value = ord.value === 'quem-data-asc' ? 'quem-data-desc' : 'quem-data-asc';
+  }
+  applyFilters();
+}
+
+function updQuemSel() {
+  const sel = g('flt-qr'), cur = sel.value;
+  const nomes = [...new Set(rows.filter(r => r.quem_recebeu).map(r => r.quem_recebeu))].sort();
+  sel.innerHTML = '<option value="">Todos</option>' + nomes.map(n => `<option value="${n}">${n}</option>`).join('');
+  if (nomes.includes(cur)) sel.value = cur;
+}
+
+function updDL() {
+  g('dlqr').innerHTML = [...new Set(rows.filter(r => r.quem_recebeu).map(r => r.quem_recebeu))]
+    .map(n => `<option value="${n}">`).join('');
+}
+
+// ── DATA ──────────────────────────────────────────────
+async function loadData() {
+  setSave('ld', 'Carregando lançamentos...');
+  try {
+    const {data, error} = await db.from('bety_lancamentos').select('*').order('created_at', {ascending: true});
+    if (error) throw error;
+    rows = (data || []).map(r => ({
+      id: r.id,
+      data: r.data,
+      tipo: r.tipo,
+      quem_recebeu: r.quem_recebeu || '',
+      valor_brl: parseFloat(r.valor_brl) || 0,
+      cotacao: parseFloat(r.cotacao) || 0,
+      valor_usd: parseFloat(r.valor_usd) || 0,
+      desc: r.descricao || ''
+    }));
+    updDL(); updQuemSel();
+    setSave('ok', rows.length + ' lançamento(s) carregado(s)');
+  } catch(e) {
+    setSave('err', 'Erro ao carregar: ' + e.message);
+  }
+  render();
+}
+
+async function insertRow(f) {
+  setSave('ld', 'Salvando...');
+  try {
+    const {data, error} = await db.from('bety_lancamentos').insert([{
+      data: f.data, tipo: f.tipo, quem_recebeu: f.quem_recebeu || null,
+      valor_brl: f.valor_brl, cotacao: f.cotacao, valor_usd: f.valor_usd,
+      descricao: f.desc || null
+    }]).select().single();
+    if (error) throw error;
+    rows.push({
+      id: data.id, data: data.data, tipo: data.tipo,
+      quem_recebeu: data.quem_recebeu || '',
+      valor_brl: parseFloat(data.valor_brl) || 0,
+      cotacao: parseFloat(data.cotacao) || 0,
+      valor_usd: parseFloat(data.valor_usd) || 0,
+      desc: data.descricao || ''
+    });
+    updDL(); updQuemSel(); render();
+    setSave('ok', 'Salvo · ' + rows.length + ' lançamento(s)');
+  } catch(e) {
+    setSave('err', 'Erro ao salvar: ' + e.message);
+  }
+}
+
+async function updateRow(id, f) {
+  setSave('ld', 'Atualizando...');
+  try {
+    const {error} = await db.from('bety_lancamentos').update({
+      data: f.data, tipo: f.tipo, quem_recebeu: f.quem_recebeu || null,
+      valor_brl: f.valor_brl, cotacao: f.cotacao, valor_usd: f.valor_usd,
+      descricao: f.desc || null
+    }).eq('id', id);
+    if (error) throw error;
+    const i = rows.findIndex(r => r.id === id);
+    if (i > -1) rows[i] = {...rows[i], ...f};
+    updDL(); updQuemSel(); render();
+    setSave('ok', 'Atualizado · ' + rows.length + ' lançamento(s)');
+  } catch(e) {
+    setSave('err', 'Erro ao atualizar: ' + e.message);
+  }
+}
+
+async function deleteRow(id) {
+  if (!confirm('Excluir este lançamento?')) return;
+  if (editId === id) cancelEdit();
+  setSave('ld', 'Excluindo...');
+  try {
+    const {error} = await db.from('bety_lancamentos').delete().eq('id', id);
+    if (error) throw error;
+    rows = rows.filter(r => r.id !== id);
+    updDL(); updQuemSel(); render();
+    setSave('ok', rows.length + ' lançamento(s)');
+  } catch(e) {
+    setSave('err', 'Erro ao excluir: ' + e.message);
+  }
+}
+
+// ── FORM ──────────────────────────────────────────────
+function calcUSD() {
+  const vb = parseFloat(g('fvb').value) || 0;
+  const co = parseFloat(g('fco').value) || 0;
+  const prev = g('usdprev');
+  if (vb > 0 && co > 0) {
+    const usd = vb / co;
+    prev.textContent = '= US$ ' + fmt2(usd);
+  } else {
+    prev.textContent = '';
+  }
+}
+
+function getForm() {
+  const vb = parseFloat(g('fvb').value) || 0;
+  const co = parseFloat(g('fco').value) || 0;
+  const usd = (vb > 0 && co > 0) ? vb / co : 0;
+  return {
+    tipo: g('fti').value,
+    quem_recebeu: g('fqr').value.trim(),
+    valor_brl: vb,
+    cotacao: co,
+    valor_usd: usd,
+    desc: g('fds').value.trim(),
+    data: g('fd').value || todayISO()
+  };
+}
+
+function clrForm() {
+  ['fvb','fco','fds'].forEach(id => g(id).value = '');
+  g('fqr').value = '';
+  g('fd').value = todayISO();
+  g('usdprev').textContent = '';
+}
+
+async function submit() {
+  const f = getForm();
+  if (!f.valor_brl || f.valor_brl <= 0) { g('fvb').focus(); return; }
+  if (!f.cotacao || f.cotacao <= 0) { g('fco').focus(); return; }
+  g('badd').disabled = true;
+  if (editId !== null) { await updateRow(editId, f); cancelEdit(); }
+  else { await insertRow(f); clrForm(); }
+  g('badd').disabled = false;
+}
+
+function startEdit(id) {
+  editId = id;
+  const r = rows.find(r => r.id === id);
+  if (!r) return;
+  g('fd').value = r.data;
+  g('fti').value = r.tipo;
+  g('fqr').value = r.quem_recebeu;
+  g('fvb').value = r.valor_brl;
+  g('fco').value = r.cotacao;
+  g('fds').value = r.desc;
+  calcUSD();
+  g('fs').classList.add('em');
+  g('badd').textContent = 'Salvar';
+  g('badd').classList.add('sv');
+  g('bcanc').style.display = '';
+  g('emlbl').style.display = '';
+  g('fvb').focus();
+  render();
+}
+
+function cancelEdit() {
+  editId = null; clrForm();
+  g('fti').value = 'E';
+  g('fs').classList.remove('em');
+  g('badd').textContent = '+ Lançar';
+  g('badd').classList.remove('sv');
+  g('bcanc').style.display = 'none';
+  g('emlbl').style.display = 'none';
+  render();
+}
+
+// ── RENDER ────────────────────────────────────────────
+function render() {
+  const tb = g('tb');
+  const vis = getFiltered();
+  const total = rows.length, filtered = vis.length;
+  const hasFilter = g('flt-de').value || g('flt-ate').value || g('flt-qr').value;
+  g('flt-count').textContent = hasFilter ? `${filtered} de ${total} lançamento(s)` : `${total} lançamento(s)`;
+
+  // sort arrows
+  const ord = g('flt-ord').value;
+  ['th-data','th-quem'].forEach(id => { const el = g(id); if(el) el.classList.remove('sorted'); });
+  if (ord.startsWith('data')) {
+    g('th-data').classList.add('sorted');
+    g('th-data').querySelector('.arr').textContent = ord === 'data-asc' ? '↑' : '↓';
+  } else {
+    g('th-quem').classList.add('sorted');
+    g('th-quem').querySelector('.arr').textContent = ord === 'quem-data-asc' ? '↑' : '↓';
+  }
+
+  const saldoMap = computeSaldos();
+
+  if (!vis.length) {
+    tb.innerHTML = `<tr class="erow"><td colspan="10">${rows.length ? 'Nenhum lançamento corresponde aos filtros aplicados' : 'Nenhum lançamento — use o formulário acima para começar'}</td></tr>`;
+    g('tf').style.display = 'none';
+    if (!rows.length) { g('hdbal').innerHTML = ''; g('sm').style.display = 'none'; g('stinfo').textContent = ''; return; }
+  } else {
+    tb.innerHTML = vis.map(r => {
+      const vc = r.tipo === 'E' ? 've' : 'vs';
+      const signedBrl = (r.tipo === 'S' ? '– ' : '') + 'R$ ' + fmt2(r.valor_brl);
+      const signedUsd = (r.tipo === 'S' ? '– ' : '') + 'US$ ' + fmt2(r.valor_usd);
+      const saldo = saldoMap[r.id];
+      const saldoH = saldo !== undefined
+        ? `<span class="${saldo >= 0 ? 'saldo-pos' : 'saldo-neg'}">${saldo >= 0 ? '' : '– '}US$ ${fmt2(saldo)}</span>`
+        : `<span class="bnd">—</span>`;
+      const coH = r.cotacao > 0
+        ? `<span class="tx-val">R$ ${fmt4(r.cotacao)}</span>`
+        : `<span class="bnd">—</span>`;
+      const eC = editId === r.id ? ' class="editing-row"' : '';
+      return `<tr${eC}><td><span class="pill p${r.tipo.toLowerCase()}"></span></td><td style="color:#888;font-size:10.5px">${isoD(r.data)}</td><td title="${r.quem_recebeu||''}">${r.quem_recebeu||'—'}</td><td title="${r.desc||''}">${r.desc||'—'}</td><td class="vb">${signedBrl}</td><td>${coH}</td><td class="${vc}">${signedUsd}</td><td>${saldoH}</td><td><button class="be" onclick="startEdit(${r.id})" title="Editar">✎</button></td><td><button class="bdl" onclick="deleteRow(${r.id})" title="Excluir">✕</button></td></tr>`;
+    }).join('');
+    renderSubtotal(vis);
+  }
+  renderSumm(vis, hasFilter);
+  g('stinfo').textContent = rows.length + ' lançamento(s) total';
+}
+
+function renderSubtotal(vis) {
+  const tf = g('tf'), tfrow = g('tf-row');
+  if (!vis.length) { tf.style.display = 'none'; return; }
+  let totBrl = 0, totUsd = 0;
+  vis.forEach(r => {
+    const sign = r.tipo === 'E' ? 1 : -1;
+    totBrl += sign * r.valor_brl;
+    totUsd += sign * r.valor_usd;
+  });
+  const brlC = totBrl >= 0 ? 'sub-pos' : 'sub-neg';
+  const usdC = totUsd >= 0 ? 'sub-pos' : 'sub-neg';
+  tfrow.innerHTML = `
+    <td class="sub-lbl">${vis.length} lançamento(s)</td>
+    <td colspan="3"></td>
+    <td class="${brlC}">${totBrl >= 0 ? '+ ' : '– '}R$ ${fmt2(totBrl)}</td>
+    <td></td>
+    <td class="${usdC}">${totUsd >= 0 ? '+ ' : '– '}US$ ${fmt2(totUsd)}</td>
+    <td colspan="3"></td>`;
+  tf.style.display = '';
+}
+
+function renderSumm(vis, hasFilter) {
+  // per quem_recebeu
+  const qMap = {};
+  let totBrl = 0, totUsd = 0;
+  vis.forEach(r => {
+    const q = r.quem_recebeu || 'Sem identificação';
+    const sign = r.tipo === 'E' ? 1 : -1;
+    if (!qMap[q]) qMap[q] = {brl: 0, usd: 0};
+    qMap[q].brl += sign * r.valor_brl;
+    qMap[q].usd += sign * r.valor_usd;
+    totBrl += sign * r.valor_brl;
+    totUsd += sign * r.valor_usd;
+  });
+
+  const saldoAtual = currentSaldo();
+  const fltTag = hasFilter ? `<span class="flt-tag">filtrado</span>` : '';
+
+  const qHTML = Object.keys(qMap).sort().map(q => {
+    const v = qMap[q];
+    return `<div class="smr">
+      <span class="sml">${q}</span>
+      <div class="smv">
+        <span class="ch"><span class="${v.brl >= 0 ? 'pos' : 'neg'}">${v.brl >= 0 ? '+ ' : '– '}R$ ${fmt2(v.brl)}</span></span>
+        <span class="ch" style="color:#999;font-size:10px">|</span>
+        <span class="ch"><span class="${v.usd >= 0 ? 'pos' : 'neg'}">${v.usd >= 0 ? '+ ' : '– '}US$ ${fmt2(v.usd)}</span></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const hdBalParts = [
+    `${totUsd >= 0 ? '+' : '–'} US$ ${fmt2(totUsd)}`,
+    `${totBrl >= 0 ? '+' : '–'} R$ ${fmt2(totBrl)}`
+  ].join(' · ');
+
+  g('hdbal').innerHTML = `
+    <div class="hdbal-lbl">Saldo atual${hasFilter ? ' (filtrado)' : ''}</div>
+    <div class="hdbal-val">${hdBalParts}</div>`;
+
+  g('sm').style.display = '';
+  g('sm').innerHTML = `
+    <div class="smhd">Resumo por Quem Recebeu ${fltTag}</div>
+    <div class="smbd">
+      ${qHTML}
+      <div class="smr" style="margin-top:4px">
+        <span class="sml" style="font-weight:700">Total do período</span>
+        <div class="smv">
+          <span class="ch"><span class="${totBrl >= 0 ? 'pos' : 'neg'}">${totBrl >= 0 ? '+ ' : '– '}R$ ${fmt2(totBrl)}</span> <span style="font-size:9px;opacity:.4">BRL</span></span>
+          <span class="ch"><span class="${totUsd >= 0 ? 'pos' : 'neg'}">${totUsd >= 0 ? '+ ' : '– '}US$ ${fmt2(totUsd)}</span> <span style="font-size:9px;opacity:.4">USD líquido período</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="smbrl">
+      <div class="smbrl-item">
+        <span class="smbrl-lbl">Saldo USD acumulado (global)</span>
+        <span class="smbrl-val" style="color:${saldoAtual >= 0 ? '#059669' : '#dc2626'}">${saldoAtual >= 0 ? '' : '– '}US$ ${fmt2(saldoAtual)}</span>
+      </div>
+      <div class="smbrl-item">
+        <span class="smbrl-lbl">Total BRL movimentado (período)</span>
+        <span class="smbrl-val" style="color:${totBrl >= 0 ? '#059669' : '#dc2626'}">${totBrl >= 0 ? '' : '– '}R$ ${fmt2(totBrl)}</span>
+      </div>
+    </div>`;
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────────
+function exportJSON() {
+  const blob = new Blob([JSON.stringify({rows, exportedAt: new Date().toISOString()}, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'bety-dolar-' + todayISO() + '.json';
+  a.click();
+}
+
+function importJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (!Array.isArray(d.rows)) throw 0;
+      let count = 0;
+      for (const r of d.rows) {
+        if (!rows.some(x => x.id === r.id)) {
+          await db.from('bety_lancamentos').insert([{
+            data: r.data, tipo: r.tipo, quem_recebeu: r.quem_recebeu || null,
+            valor_brl: r.valor_brl, cotacao: r.cotacao, valor_usd: r.valor_usd,
+            descricao: r.desc || null
+          }]);
+          count++;
+        }
+      }
+      await loadData();
+      alert(count + ' lançamento(s) importado(s).');
+    } catch { alert('Arquivo inválido.'); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── PRINT ─────────────────────────────────────────────
+function printReport() {
+  const vis = getFiltered();
+  if (!vis.length) { alert('Nenhum lançamento para imprimir com os filtros atuais.'); return; }
+
+  const saldoMap = computeSaldos();
+  const quems = [...new Set(vis.map(r => r.quem_recebeu || 'Sem identificação'))].sort();
+
+  const de = g('flt-de').value, ate = g('flt-ate').value, fq = g('flt-qr').value;
+  const ord = g('flt-ord').value;
+  const ordLabel = {'data-asc':'Data ↑','data-desc':'Data ↓','quem-data-asc':'Quem/Data ↑','quem-data-desc':'Quem/Data ↓'}[ord] || ord;
+  const fltParts = [de ? 'De: ' + isoD(de) : '', ate ? 'Até: ' + isoD(ate) : '', fq ? 'Quem: ' + fq : '', 'Ordem: ' + ordLabel].filter(Boolean);
+
+  let body = '';
+  quems.forEach(quem => {
+    const qR = vis.filter(r => (r.quem_recebeu || 'Sem identificação') === quem);
+    let subBrl = 0, subUsd = 0;
+    const trs = qR.map(r => {
+      const sign = r.tipo === 'E' ? 1 : -1;
+      subBrl += sign * r.valor_brl;
+      subUsd += sign * r.valor_usd;
+      const saldo = saldoMap[r.id];
+      const ec = r.tipo === 'E' ? '#059669' : '#dc2626';
+      return `<tr>
+        <td style="color:${ec};font-weight:700">${r.tipo === 'E' ? 'Entrada' : 'Saída'}</td>
+        <td>${isoD(r.data)}</td>
+        <td>${r.desc || '—'}</td>
+        <td style="color:${ec};font-weight:600">${(r.tipo === 'S' ? '– ' : '') + 'R$ ' + fmt2(r.valor_brl)}</td>
+        <td class="mu">${r.cotacao > 0 ? 'R$ ' + fmt4(r.cotacao) : '—'}</td>
+        <td style="color:${ec};font-weight:600">${(r.tipo === 'S' ? '– ' : '') + 'US$ ' + fmt2(r.valor_usd)}</td>
+        <td style="color:${saldo >= 0 ? '#059669' : '#dc2626'};font-weight:600">${saldo !== undefined ? (saldo >= 0 ? '' : '– ') + 'US$ ' + fmt2(saldo) : '—'}</td>
+      </tr>`;
+    }).join('');
+    const sbC = subUsd >= 0 ? '#6ee7b7' : '#fca5a5';
+    const sbRC = subBrl >= 0 ? '#6ee7b7' : '#fca5a5';
+    const subRow = `<tr class="strow">
+      <td colspan="3" style="text-align:right;font-size:6.5pt;font-weight:700;color:#fff">Subtotal ${quem}:</td>
+      <td style="color:${sbRC};font-weight:700;font-size:7pt">${subBrl >= 0 ? '+ ' : '– '}R$ ${fmt2(subBrl)}</td>
+      <td></td>
+      <td style="color:${sbC};font-weight:700;font-size:7pt">${subUsd >= 0 ? '+ ' : '– '}US$ ${fmt2(subUsd)}</td>
+      <td></td>
+    </tr>`;
+    body += `<div class="ch">QUEM RECEBEU: ${quem.toUpperCase()}</div>
+      <table><thead><tr><th>Tipo</th><th>Data</th><th>Descrição</th><th>Valor R$</th><th>Cotação</th><th>Valor USD</th><th>Saldo USD</th></tr></thead>
+      <tbody>${trs}</tbody><tfoot>${subRow}</tfoot></table>`;
+  });
+
+  // Grand total
+  let gBrl = 0, gUsd = 0;
+  vis.forEach(r => { const s = r.tipo === 'E' ? 1 : -1; gBrl += s * r.valor_brl; gUsd += s * r.valor_usd; });
+  const saldoAtual = currentSaldo();
+  body += `<div class="sh">RESUMO GERAL</div>
+    <table><thead><tr><th>Quem Recebeu?</th><th>Total R$</th><th>Total USD</th></tr></thead><tbody>
+    ${quems.map(q => {
+      const qR = vis.filter(r => (r.quem_recebeu || 'Sem identificação') === q);
+      let qB = 0, qU = 0;
+      qR.forEach(r => { const s = r.tipo === 'E' ? 1 : -1; qB += s * r.valor_brl; qU += s * r.valor_usd; });
+      return `<tr><td>${q}</td><td style="color:${qB >= 0 ? '#059669' : '#dc2626'};font-weight:700">${qB >= 0 ? '+ ' : '– '}R$ ${fmt2(qB)}</td><td style="color:${qU >= 0 ? '#059669' : '#dc2626'};font-weight:700">${qU >= 0 ? '+ ' : '– '}US$ ${fmt2(qU)}</td></tr>`;
+    }).join('')}
+    </tbody>
+    <tfoot>
+      <tr><td style="font-weight:700">TOTAL DO PERÍODO</td>
+        <td style="color:${gBrl >= 0 ? '#6ee7b7' : '#fca5a5'};font-weight:700">${gBrl >= 0 ? '+ ' : '– '}R$ ${fmt2(gBrl)}</td>
+        <td style="color:${gUsd >= 0 ? '#6ee7b7' : '#fca5a5'};font-weight:700">${gUsd >= 0 ? '+ ' : '– '}US$ ${fmt2(gUsd)}</td>
+      </tr>
+      <tr><td style="font-weight:700">SALDO USD ACUMULADO (GLOBAL)</td>
+        <td></td>
+        <td style="color:${saldoAtual >= 0 ? '#6ee7b7' : '#fca5a5'};font-weight:700;font-size:10pt">${saldoAtual >= 0 ? '' : '– '}US$ ${fmt2(saldoAtual)}</td>
+      </tr>
+    </tfoot></table>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Dólar — Bety</title>
+  <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7pt;padding:5px 0 8px;color:#555;border-bottom:1px solid #ddd;margin-bottom:10px}.ch{background:#2d2d50;color:#fff;padding:4px 10px;font-size:8pt;font-weight:700;margin:12px 0 0}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:4px 10px;margin:14px 0 0;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;margin-bottom:2px;font-size:7.5pt}th{background:#f0f0f8;padding:3px 5px;text-align:left;font-size:6.5pt;font-weight:700;border-bottom:1px solid #ddd}td{padding:2.5px 5px;border-bottom:.5px solid #eee;vertical-align:middle}tfoot td,.strow td{background:#1a1a2e;color:#fff;padding:4px 5px;border:none}.mu{color:#777;font-size:7pt}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
+  </head><body>
+  <button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button>
+  <div class="hd"><div><small>CONTROLE DE DÓLAR — ENTRADAS E SAÍDAS USD</small><h1>Demonstrativo por Quem Recebeu</h1></div><div class="hdr"><div>${isoD(todayISO())}</div></div></div>
+  <div class="flt-hd">${fltParts.join('  |  ')}</div>
+  ${body}
+  <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement?.id !== 'badd') submit();
+});
+
+loadData();
+</script>
+</body>
+</html>
