@@ -50,7 +50,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
 .fltbar label{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#888;white-space:nowrap}
 .fltbar input,.fltbar select{font-size:11.5px;height:28px;padding:0 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
 .fltbar input:focus,.fltbar select:focus{border-color:#1a1a2e}
-.flt-de{width:110px}.flt-ate{width:110px}.flt-qr{width:160px}.flt-ord{width:180px}
+.flt-ano{width:80px}.flt-de{width:110px}.flt-ate{width:110px}.flt-qr{width:160px}.flt-ord{width:180px}
 .flt-sep{width:1px;height:18px;background:#e0e0e0;margin:0 2px}
 .flt-count{font-size:10px;color:#888;margin-left:auto;white-space:nowrap}
 .flt-clr{height:26px;padding:0 10px;font-size:10.5px;border-radius:5px;border:1px solid #ddd;cursor:pointer;background:none;color:#888}
@@ -165,6 +165,11 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
 
   <!-- FILTER BAR -->
   <div class="fltbar">
+    <label>Ano</label>
+    <select class="flt-ano" id="flt-ano" onchange="selectYear()">
+      <option value="">Todos os anos</option>
+    </select>
+    <div class="flt-sep"></div>
     <label>De</label>
     <input class="flt-de" type="date" id="flt-de" onchange="applyFilters()"/>
     <label>Até</label>
@@ -273,11 +278,12 @@ function currentSaldo() {
 
 // ── FILTERS ───────────────────────────────────────────
 function getFiltered() {
-  const de = g('flt-de').value, ate = g('flt-ate').value, qr = g('flt-qr').value;
+  const de = g('flt-de').value, ate = g('flt-ate').value, qr = g('flt-qr').value, ano = g('flt-ano').value;
   let res = rows.filter(r => {
     if (de && r.data < de) return false;
     if (ate && r.data > ate) return false;
     if (qr && (r.quem_recebeu || '') !== qr) return false;
+    if (ano && !r.data.startsWith(ano)) return false;
     return true;
   });
   const ord = g('flt-ord').value;
@@ -295,17 +301,30 @@ function getFiltered() {
 }
 
 function applyFilters() {
-  const de = g('flt-de').value, ate = g('flt-ate').value, qr = g('flt-qr').value;
+  const de = g('flt-de').value, ate = g('flt-ate').value, qr = g('flt-qr').value, ano = g('flt-ano').value;
   g('flt-de').classList.toggle('flt-active', !!de);
   g('flt-ate').classList.toggle('flt-active', !!ate);
   g('flt-qr').classList.toggle('flt-active', !!qr);
+  g('flt-ano').classList.toggle('flt-active', !!ano);
   render();
 }
 
+function selectYear() {
+  const ano = g('flt-ano').value;
+  if (ano) {
+    g('flt-de').value = ano + '-01-01';
+    g('flt-ate').value = ano + '-12-31';
+  } else {
+    g('flt-de').value = '';
+    g('flt-ate').value = '';
+  }
+  applyFilters();
+}
+
 function clearFilters() {
-  g('flt-de').value = ''; g('flt-ate').value = ''; g('flt-qr').value = '';
+  g('flt-de').value = ''; g('flt-ate').value = ''; g('flt-qr').value = ''; g('flt-ano').value = '';
   g('flt-ord').value = 'data-asc';
-  ['flt-de','flt-ate','flt-qr'].forEach(id => g(id).classList.remove('flt-active'));
+  ['flt-de','flt-ate','flt-qr','flt-ano'].forEach(id => g(id).classList.remove('flt-active'));
   render();
 }
 
@@ -324,6 +343,13 @@ function updQuemSel() {
   const nomes = [...new Set(rows.filter(r => r.quem_recebeu).map(r => r.quem_recebeu))].sort();
   sel.innerHTML = '<option value="">Todos</option>' + nomes.map(n => `<option value="${n}">${n}</option>`).join('');
   if (nomes.includes(cur)) sel.value = cur;
+}
+
+function updAnoSel() {
+  const sel = g('flt-ano'), cur = sel.value;
+  const anos = [...new Set(rows.map(r => r.data.substring(0,4)))].sort().reverse();
+  sel.innerHTML = '<option value="">Todos os anos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+  if (anos.includes(cur)) sel.value = cur;
 }
 
 function updDL() {
@@ -372,7 +398,7 @@ async function insertRow(f) {
       valor_usd: parseFloat(data.valor_usd) || 0,
       desc: data.descricao || ''
     });
-    updDL(); updQuemSel(); render();
+    updDL(); updQuemSel(); updAnoSel(); render();
     setSave('ok', 'Salvo · ' + rows.length + ' lançamento(s)');
   } catch(e) {
     setSave('err', 'Erro ao salvar: ' + e.message);
@@ -390,7 +416,7 @@ async function updateRow(id, f) {
     if (error) throw error;
     const i = rows.findIndex(r => r.id === id);
     if (i > -1) rows[i] = {...rows[i], ...f};
-    updDL(); updQuemSel(); render();
+    updDL(); updQuemSel(); updAnoSel(); render();
     setSave('ok', 'Atualizado · ' + rows.length + ' lançamento(s)');
   } catch(e) {
     setSave('err', 'Erro ao atualizar: ' + e.message);
@@ -405,7 +431,7 @@ async function deleteRow(id) {
     const {error} = await db.from('bety_lancamentos').delete().eq('id', id);
     if (error) throw error;
     rows = rows.filter(r => r.id !== id);
-    updDL(); updQuemSel(); render();
+    updDL(); updQuemSel(); updAnoSel(); render();
     setSave('ok', rows.length + ' lançamento(s)');
   } catch(e) {
     setSave('err', 'Erro ao excluir: ' + e.message);
@@ -572,6 +598,12 @@ function renderSumm(vis, hasFilter) {
   const saldoAtual = currentSaldo();
   const fltTag = hasFilter ? `<span class="flt-tag">filtrado</span>` : '';
 
+  // Cotação média ponderada: soma(BRL) / soma(USD) apenas em entradas com cotação
+  const entradas = vis.filter(r => r.tipo === 'E' && r.cotacao > 0 && r.valor_usd > 0);
+  const somaBrlEntradas = entradas.reduce((acc, r) => acc + r.valor_brl, 0);
+  const somaUsdEntradas = entradas.reduce((acc, r) => acc + r.valor_usd, 0);
+  const cotMedia = somaUsdEntradas > 0 ? somaBrlEntradas / somaUsdEntradas : null;
+
   const qHTML = Object.keys(qMap).sort().map(q => {
     const v = qMap[q];
     return `<div class="smr">
@@ -614,6 +646,10 @@ function renderSumm(vis, hasFilter) {
       <div class="smbrl-item">
         <span class="smbrl-lbl">Total BRL movimentado (período)</span>
         <span class="smbrl-val" style="color:${totBrl >= 0 ? '#059669' : '#dc2626'}">${totBrl >= 0 ? '' : '– '}R$ ${fmt2(totBrl)}</span>
+      </div>
+      <div class="smbrl-item">
+        <span class="smbrl-lbl">Cotação média ponderada${hasFilter ? ' (período)' : ''}</span>
+        <span class="smbrl-val" style="color:#1d4ed8">${cotMedia !== null ? 'R$ ' + fmt4(cotMedia) + ' / US$' : '—'}</span>
       </div>
     </div>`;
 }
