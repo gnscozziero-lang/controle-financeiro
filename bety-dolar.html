@@ -10,6 +10,27 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f4f8;min-height:100vh;padding:24px 16px;color:#1a1a2e}
 .sheet{max-width:980px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden}
 
+/* view toggle */
+.vtoggle{display:flex;gap:0;border:.5px solid rgba(255,255,255,.2);border-radius:6px;overflow:hidden}
+.vtbtn{height:27px;padding:0 12px;font-size:10.5px;font-weight:500;border:none;cursor:pointer;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);white-space:nowrap;transition:background .15s}
+.vtbtn.active{background:rgba(255,255,255,.22);color:#fff}
+.vtbtn:hover:not(.active){background:rgba(255,255,255,.13)}
+/* synthetic view */
+.synth-card{background:#fff;border-radius:8px;margin:16px 18px;border:1px solid #e8e8f0;overflow:hidden}
+.synth-hd{background:#f7f7fb;padding:8px 14px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#888;border-bottom:1px solid #e8e8f0;display:flex;align-items:center;gap:8px}
+.synth-body{padding:0}
+.synth-row{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #f0f0f6;font-size:12px}
+.synth-row:last-child{border-bottom:none}
+.synth-lbl{color:#666;font-size:11px}
+.synth-val{font-weight:600;font-size:13px}
+.synth-tot{background:#1a1a2e;color:#fff}
+.synth-tot .synth-lbl{color:rgba(255,255,255,.55);font-size:10px}
+.synth-tot .synth-val{color:#6ee7b7;font-size:14px}
+.synth-section{margin:0 18px 16px;display:flex;flex-direction:column;gap:10px}
+.synth-quem-tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.synth-quem-tbl th{background:#f7f7fb;padding:5px 10px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888;border-bottom:1px solid #e8e8f0;text-align:left}
+.synth-quem-tbl td{padding:6px 10px;border-bottom:1px solid #f0f0f6}
+.synth-quem-tbl tfoot td{background:#1a1a2e;color:#fff;padding:6px 10px;font-size:10.5px;font-weight:700;border:none}
 /* setup banner */
 .setup-banner{background:#fef3c7;border-bottom:2px solid #f59e0b;padding:10px 18px;font-size:11.5px;color:#92400e;display:flex;align-items:center;gap:10px}
 .setup-banner strong{font-weight:700}
@@ -131,6 +152,10 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
     </div>
     <div class="hdr">
       <div class="hd-btns">
+        <div class="vtoggle">
+          <button class="vtbtn active" id="vt-analitica" onclick="setView('analitica')">Analítica</button>
+          <button class="vtbtn" id="vt-sintetica" onclick="setView('sintetica')">Sintética</button>
+        </div>
         <button class="hbtn" onclick="exportJSON()">Backup JSON</button>
         <label class="hbtn" style="cursor:pointer">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none" onchange="importJSON(event)"/></label>
         <button class="hbtn" onclick="printReport()">Imprimir / PDF</button>
@@ -191,8 +216,11 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
     <span class="flt-count" id="flt-count"></span>
   </div>
 
+  <!-- SYNTHETIC VIEW -->
+  <div id="synth-view" style="display:none"></div>
+
   <!-- TABLE -->
-  <div class="tw">
+  <div class="tw" id="analitica-view">
     <table>
       <thead><tr>
         <th style="width:14px;cursor:default"></th>
@@ -518,6 +546,110 @@ function cancelEdit() {
   render();
 }
 
+// ── VIEW TOGGLE ───────────────────────────────────────
+let currentView = 'analitica';
+
+function setView(v) {
+  currentView = v;
+  g('vt-analitica').classList.toggle('active', v === 'analitica');
+  g('vt-sintetica').classList.toggle('active', v === 'sintetica');
+  g('analitica-view').style.display = v === 'analitica' ? '' : 'none';
+  g('synth-view').style.display = v === 'sintetica' ? '' : 'none';
+  g('sm').style.display = 'none'; // always hide the default summary; synth has its own
+  render();
+}
+
+function renderSynth(vis, hasFilter) {
+  const sv = g('synth-view');
+  if (!vis.length) {
+    sv.innerHTML = '<div style="padding:32px;text-align:center;color:#aaa;font-size:12px">Nenhum lançamento para exibir</div>';
+    return;
+  }
+
+  // per quem
+  const qMap = {};
+  let totBrlE = 0, totUsdE = 0, totBrlS = 0, totUsdS = 0;
+  vis.forEach(r => {
+    const q = r.quem_recebeu || 'Sem identificação';
+    if (!qMap[q]) qMap[q] = {brlE:0, usdE:0, brlS:0, usdS:0};
+    if (r.tipo === 'E') { qMap[q].brlE += r.valor_brl; qMap[q].usdE += r.valor_usd; totBrlE += r.valor_brl; totUsdE += r.valor_usd; }
+    else { qMap[q].brlS += r.valor_brl; qMap[q].usdS += r.valor_usd; totBrlS += r.valor_brl; totUsdS += r.valor_usd; }
+  });
+
+  const entradas = vis.filter(r => r.tipo === 'E' && r.cotacao > 0 && r.valor_usd > 0);
+  const somaBrl = entradas.reduce((a,r) => a + r.valor_brl, 0);
+  const somaUsd = entradas.reduce((a,r) => a + r.valor_usd, 0);
+  const cotMedia = somaUsd > 0 ? somaBrl / somaUsd : null;
+  const saldoAtual = currentSaldo();
+  const totLiqBrl = totBrlE - totBrlS;
+  const totLiqUsd = totUsdE - totUsdS;
+
+  const fltTag = hasFilter ? `<span class="flt-tag">filtrado</span>` : '';
+
+  // By quem table
+  const quemRows = Object.keys(qMap).sort().map(q => {
+    const v = qMap[q];
+    const liqUsd = v.usdE - v.usdS;
+    const liqBrl = v.brlE - v.brlS;
+    return `<tr>
+      <td>${q}</td>
+      <td style="color:#059669;font-weight:600">US$ ${fmt2(v.usdE)}</td>
+      <td style="color:#dc2626;font-weight:600">${v.usdS > 0 ? 'US$ ' + fmt2(v.usdS) : '—'}</td>
+      <td style="color:${liqUsd >= 0 ? '#059669' : '#dc2626'};font-weight:700">${liqUsd >= 0 ? '' : '– '}US$ ${fmt2(liqUsd)}</td>
+      <td style="color:#059669;font-weight:600">${v.brlE > 0 ? 'R$ ' + fmt2(v.brlE) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  sv.innerHTML = `
+    <div style="padding:16px 18px 0">
+      <div class="smhd" style="padding:0 0 8px">Resumo por Quem Recebeu ${fltTag}</div>
+      <table class="synth-quem-tbl">
+        <thead><tr>
+          <th>Quem Recebeu?</th>
+          <th>USD Entradas</th>
+          <th>USD Saídas</th>
+          <th>USD Líquido</th>
+          <th>BRL Pago</th>
+        </tr></thead>
+        <tbody>${quemRows}</tbody>
+        <tfoot><tr>
+          <td>TOTAL</td>
+          <td style="color:#6ee7b7">US$ ${fmt2(totUsdE)}</td>
+          <td style="color:#fca5a5">${totUsdS > 0 ? 'US$ ' + fmt2(totUsdS) : '—'}</td>
+          <td style="color:${totLiqUsd >= 0 ? '#6ee7b7' : '#fca5a5'}">${totLiqUsd >= 0 ? '' : '– '}US$ ${fmt2(totLiqUsd)}</td>
+          <td style="color:#6ee7b7">R$ ${fmt2(totBrlE)}</td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <div class="synth-section" style="margin-top:14px">
+      <div class="synth-card">
+        <div class="synth-hd">Indicadores consolidados ${fltTag}</div>
+        <div class="synth-body">
+          <div class="synth-row">
+            <span class="synth-lbl">Total USD comprado (entradas)</span>
+            <span class="synth-val" style="color:#059669">US$ ${fmt2(totUsdE)}</span>
+          </div>
+          <div class="synth-row">
+            <span class="synth-lbl">Total USD saído (saídas)</span>
+            <span class="synth-val" style="color:#dc2626">${totUsdS > 0 ? 'US$ ' + fmt2(totUsdS) : '—'}</span>
+          </div>
+          <div class="synth-row">
+            <span class="synth-lbl">Total BRL investido (entradas)</span>
+            <span class="synth-val" style="color:#059669">R$ ${fmt2(totBrlE)}</span>
+          </div>
+          <div class="synth-row">
+            <span class="synth-lbl">Cotação média ponderada${hasFilter ? ' (período)' : ''}</span>
+            <span class="synth-val" style="color:#1d4ed8">${cotMedia !== null ? 'R$ ' + fmt4(cotMedia) + ' / US$' : '—'}</span>
+          </div>
+          <div class="synth-row synth-tot">
+            <span class="synth-lbl">Saldo USD acumulado (global)</span>
+            <span class="synth-val" style="color:${saldoAtual >= 0 ? '#6ee7b7' : '#fca5a5'}">${saldoAtual >= 0 ? '' : '– '}US$ ${fmt2(saldoAtual)}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
 // ── RENDER ────────────────────────────────────────────
 function render() {
   const tb = g('tb');
@@ -560,7 +692,16 @@ function render() {
     }).join('');
     renderSubtotal(vis);
   }
-  renderSumm(vis, hasFilter);
+  if (currentView === 'sintetica') {
+    g('analitica-view').style.display = 'none';
+    g('synth-view').style.display = '';
+    renderSynth(vis, hasFilter);
+    g('sm').style.display = 'none';
+  } else {
+    g('analitica-view').style.display = '';
+    g('synth-view').style.display = 'none';
+    renderSumm(vis, hasFilter);
+  }
   g('stinfo').textContent = rows.length + ' lançamento(s) total';
 }
 
@@ -698,6 +839,48 @@ function importJSON(e) {
 }
 
 // ── PRINT ─────────────────────────────────────────────
+function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, gBrl, gUsd, quems) {
+  const qMap = {};
+  let totBrlE=0, totUsdE=0, totBrlS=0, totUsdS=0;
+  vis.forEach(r => {
+    const q = r.quem_recebeu || 'Sem identificação';
+    if (!qMap[q]) qMap[q] = {brlE:0,usdE:0,brlS:0,usdS:0};
+    if (r.tipo==='E'){qMap[q].brlE+=r.valor_brl;qMap[q].usdE+=r.valor_usd;totBrlE+=r.valor_brl;totUsdE+=r.valor_usd;}
+    else{qMap[q].brlS+=r.valor_brl;qMap[q].usdS+=r.valor_usd;totBrlS+=r.valor_brl;totUsdS+=r.valor_usd;}
+  });
+  const totLiqUsd = totUsdE - totUsdS;
+
+  const quemRows = Object.keys(qMap).sort().map(q => {
+    const v = qMap[q];
+    const liq = v.usdE - v.usdS;
+    return `<tr><td>${q}</td><td style="color:#059669;font-weight:700">US$ ${fmt2(v.usdE)}</td><td>${v.usdS>0?'US$ '+fmt2(v.usdS):'—'}</td><td style="color:${liq>=0?'#059669':'#dc2626'};font-weight:700">${liq>=0?'':'– '}US$ ${fmt2(liq)}</td><td style="color:#059669;font-weight:700">${v.brlE>0?'R$ '+fmt2(v.brlE):'—'}</td></tr>`;
+  }).join('');
+
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sintético — Bety</title>
+  <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7pt;padding:5px 0 10px;color:#555;border-bottom:1px solid #ddd;margin-bottom:12px}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:5px 10px;margin:14px 0 4px;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:2px}th{background:#f0f0f8;padding:4px 8px;text-align:left;font-size:7pt;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #ddd}td{padding:4px 8px;border-bottom:.5px solid #eee}.ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.ind-card{border:1px solid #e0e0ec;border-radius:6px;padding:10px 14px}.ind-lbl{font-size:7pt;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:3px}.ind-val{font-size:13pt;font-weight:700}.ind-tot{background:#1a1a2e;color:#fff;border-color:#1a1a2e}.ind-tot .ind-lbl{color:rgba(255,255,255,.5)}.ind-tot .ind-val{color:#6ee7b7}tfoot td{background:#1a1a2e;color:#fff;padding:5px 8px;font-weight:700;border:none}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
+  </head><body>
+  <button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button>
+  <div class="hd"><div><small>CONTROLE DE DÓLAR — RESUMO SINTÉTICO</small><h1>Demonstrativo Consolidado</h1></div><div class="hdr">${isoD(todayISO())}</div></div>
+  <div class="flt-hd">${fltParts.join('  |  ')}</div>
+  <div class="sh">RESUMO POR QUEM RECEBEU</div>
+  <table><thead><tr><th>Quem Recebeu?</th><th>USD Entradas</th><th>USD Saídas</th><th>USD Líquido</th><th>BRL Pago</th></tr></thead>
+  <tbody>${quemRows}</tbody>
+  <tfoot><tr><td>TOTAL</td><td style="color:#6ee7b7">US$ ${fmt2(totUsdE)}</td><td style="color:#fca5a5">${totUsdS>0?'US$ '+fmt2(totUsdS):'—'}</td><td style="color:${totLiqUsd>=0?'#6ee7b7':'#fca5a5'}">${totLiqUsd>=0?'':'– '}US$ ${fmt2(totLiqUsd)}</td><td style="color:#6ee7b7">R$ ${fmt2(totBrlE)}</td></tr></tfoot>
+  </table>
+  <div class="sh">INDICADORES CONSOLIDADOS</div>
+  <div class="ind-grid">
+    <div class="ind-card"><div class="ind-lbl">Total USD comprado</div><div class="ind-val" style="color:#059669">US$ ${fmt2(somaUsd)}</div></div>
+    <div class="ind-card"><div class="ind-lbl">Total BRL investido</div><div class="ind-val" style="color:#059669">R$ ${fmt2(somaBrl)}</div></div>
+    <div class="ind-card"><div class="ind-lbl">Cotação média ponderada</div><div class="ind-val" style="color:#1d4ed8">${cotMedia!==null?'R$ '+fmt4(cotMedia)+' /US$':'—'}</div></div>
+    <div class="ind-card ind-tot"><div class="ind-lbl">Saldo USD acumulado (global)</div><div class="ind-val" style="color:${saldoAtual>=0?'#6ee7b7':'#fca5a5'}">${saldoAtual>=0?'':'– '}US$ ${fmt2(saldoAtual)}</div></div>
+  </div>
+  <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
 function printReport() {
   const vis = getFiltered();
   if (!vis.length) { alert('Nenhum lançamento para imprimir com os filtros atuais.'); return; }
@@ -778,6 +961,14 @@ function printReport() {
         <td style="color:${saldoAtual >= 0 ? '#6ee7b7' : '#fca5a5'};font-weight:700;font-size:10pt">${saldoAtual >= 0 ? '' : '– '}US$ ${fmt2(saldoAtual)}</td>
       </tr>
     </tfoot></table>`;
+
+  const printMode = currentView === 'sintetica' ? 'sintetica' :
+    (confirm('Clique OK para versão Analítica (todos os movimentos)\nCancele para versão Sintética (somente resumo)') ? 'analitica' : 'sintetica');
+
+  if (printMode === 'sintetica') {
+    printSintetica(vis, fltParts, saldoAtual, pCotMedia, pSomaBrl, pSomaUsd, gBrl, gUsd, quems);
+    return;
+  }
 
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Dólar — Bety</title>
