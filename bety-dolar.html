@@ -748,6 +748,10 @@ function printReport() {
   let gBrl = 0, gUsd = 0;
   vis.forEach(r => { const s = r.tipo === 'E' ? 1 : -1; gBrl += s * r.valor_brl; gUsd += s * r.valor_usd; });
   const saldoAtual = currentSaldo();
+  const pEntradas = vis.filter(r => r.tipo === 'E' && r.cotacao > 0 && r.valor_usd > 0);
+  const pSomaBrl = pEntradas.reduce((a, r) => a + r.valor_brl, 0);
+  const pSomaUsd = pEntradas.reduce((a, r) => a + r.valor_usd, 0);
+  const pCotMedia = pSomaUsd > 0 ? pSomaBrl / pSomaUsd : null;
   body += `<div class="sh">RESUMO GERAL</div>
     <table><thead><tr><th>Quem Recebeu?</th><th>Total R$</th><th>Total USD</th></tr></thead><tbody>
     ${quems.map(q => {
@@ -758,9 +762,16 @@ function printReport() {
     }).join('')}
     </tbody>
     <tfoot>
-      <tr><td style="font-weight:700">TOTAL DO PERÍODO</td>
+      <tr><td style="font-weight:700">TOTAL LÍQUIDO DO PERÍODO</td>
         <td style="color:${gBrl >= 0 ? '#6ee7b7' : '#fca5a5'};font-weight:700">${gBrl >= 0 ? '+ ' : '– '}R$ ${fmt2(gBrl)}</td>
         <td style="color:${gUsd >= 0 ? '#6ee7b7' : '#fca5a5'};font-weight:700">${gUsd >= 0 ? '+ ' : '– '}US$ ${fmt2(gUsd)}</td>
+      </tr>
+      <tr><td style="font-weight:700">TOTAL USD COMPRADO (SÓ ENTRADAS)</td>
+        <td style="color:#6ee7b7;font-weight:700">R$ ${fmt2(pSomaBrl)}</td>
+        <td style="color:#6ee7b7;font-weight:700">US$ ${fmt2(pSomaUsd)}</td>
+      </tr>
+      <tr><td style="font-weight:700">COTAÇÃO MÉDIA PONDERADA</td>
+        <td colspan="2" style="color:#93c5fd;font-weight:700;font-size:10pt">${pCotMedia !== null ? 'R$ ' + fmt4(pCotMedia) + ' / US$' : '—'}</td>
       </tr>
       <tr><td style="font-weight:700">SALDO USD ACUMULADO (GLOBAL)</td>
         <td></td>
