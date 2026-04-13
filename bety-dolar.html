@@ -581,6 +581,8 @@ function renderSynth(vis, hasFilter) {
   const somaUsd = entradas.reduce((a,r) => a + r.valor_usd, 0);
   const cotMedia = somaUsd > 0 ? somaBrl / somaUsd : null;
   const saldoAtual = currentSaldo();
+  const cotMin = entradas.length ? entradas.reduce((a,r) => r.cotacao < a.cotacao ? r : a) : null;
+  const cotMax = entradas.length ? entradas.reduce((a,r) => r.cotacao > a.cotacao ? r : a) : null;
   const totLiqBrl = totBrlE - totBrlS;
   const totLiqUsd = totUsdE - totUsdS;
 
@@ -640,6 +642,14 @@ function renderSynth(vis, hasFilter) {
           <div class="synth-row">
             <span class="synth-lbl">Cotação média ponderada${hasFilter ? ' (período)' : ''}</span>
             <span class="synth-val" style="color:#1d4ed8">${cotMedia !== null ? 'R$ ' + fmt4(cotMedia) + ' / US$' : '—'}</span>
+          </div>
+          <div class="synth-row">
+            <span class="synth-lbl">Menor cotação</span>
+            <span class="synth-val" style="color:#059669">${cotMin ? 'R$ ' + fmt4(cotMin.cotacao) + ' <span style="font-size:10px;font-weight:400;color:#999">— ' + isoD(cotMin.data) + '</span>' : '—'}</span>
+          </div>
+          <div class="synth-row">
+            <span class="synth-lbl">Maior cotação</span>
+            <span class="synth-val" style="color:#dc2626">${cotMax ? 'R$ ' + fmt4(cotMax.cotacao) + ' <span style="font-size:10px;font-weight:400;color:#999">— ' + isoD(cotMax.data) + '</span>' : '—'}</span>
           </div>
           <div class="synth-row synth-tot">
             <span class="synth-lbl">Saldo USD acumulado (global)</span>
@@ -748,6 +758,8 @@ function renderSumm(vis, hasFilter) {
   const somaBrlEntradas = entradas.reduce((acc, r) => acc + r.valor_brl, 0);
   const somaUsdEntradas = entradas.reduce((acc, r) => acc + r.valor_usd, 0);
   const cotMedia = somaUsdEntradas > 0 ? somaBrlEntradas / somaUsdEntradas : null;
+  const entMinCot = entradas.length ? entradas.reduce((a,r) => r.cotacao < a.cotacao ? r : a) : null;
+  const entMaxCot = entradas.length ? entradas.reduce((a,r) => r.cotacao > a.cotacao ? r : a) : null;
 
   const qHTML = Object.keys(qMap).sort().map(q => {
     const v = qMap[q];
@@ -799,6 +811,14 @@ function renderSumm(vis, hasFilter) {
       <div class="smbrl-item">
         <span class="smbrl-lbl">Total USD comprado${hasFilter ? ' (período)' : ''}</span>
         <span class="smbrl-val" style="color:#059669">US$ ${fmt2(somaUsdEntradas)}</span>
+      </div>
+      <div class="smbrl-item">
+        <span class="smbrl-lbl">Menor cotação${hasFilter ? ' (período)' : ''}</span>
+        <span class="smbrl-val" style="color:#059669">${entMinCot ? 'R$ ' + fmt4(entMinCot.cotacao) + '<br><span style="font-size:9px;font-weight:400;color:#999">' + isoD(entMinCot.data) + '</span>' : '—'}</span>
+      </div>
+      <div class="smbrl-item">
+        <span class="smbrl-lbl">Maior cotação${hasFilter ? ' (período)' : ''}</span>
+        <span class="smbrl-val" style="color:#dc2626">${entMaxCot ? 'R$ ' + fmt4(entMaxCot.cotacao) + '<br><span style="font-size:9px;font-weight:400;color:#999">' + isoD(entMaxCot.data) + '</span>' : '—'}</span>
       </div>
     </div>`;
 }
@@ -856,6 +876,10 @@ function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, g
     return `<tr><td>${q}</td><td style="color:#059669;font-weight:700">US$ ${fmt2(v.usdE)}</td><td>${v.usdS>0?'US$ '+fmt2(v.usdS):'—'}</td><td style="color:${liq>=0?'#059669':'#dc2626'};font-weight:700">${liq>=0?'':'– '}US$ ${fmt2(liq)}</td><td style="color:#059669;font-weight:700">${v.brlE>0?'R$ '+fmt2(v.brlE):'—'}</td></tr>`;
   }).join('');
 
+  const pEntradas = vis.filter(r => r.tipo==='E' && r.cotacao>0 && r.valor_usd>0);
+  const pCotMin = pEntradas.length ? pEntradas.reduce((a,r) => r.cotacao < a.cotacao ? r : a) : null;
+  const pCotMax = pEntradas.length ? pEntradas.reduce((a,r) => r.cotacao > a.cotacao ? r : a) : null;
+
   const w = window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sintético — Bety</title>
   <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7pt;padding:5px 0 10px;color:#555;border-bottom:1px solid #ddd;margin-bottom:12px}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:5px 10px;margin:14px 0 4px;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:2px}th{background:#f0f0f8;padding:4px 8px;text-align:left;font-size:7pt;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #ddd}td{padding:4px 8px;border-bottom:.5px solid #eee}.ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.ind-card{border:1px solid #e0e0ec;border-radius:6px;padding:10px 14px}.ind-lbl{font-size:7pt;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:3px}.ind-val{font-size:13pt;font-weight:700}.ind-tot{background:#1a1a2e;color:#fff;border-color:#1a1a2e}.ind-tot .ind-lbl{color:rgba(255,255,255,.5)}.ind-tot .ind-val{color:#6ee7b7}tfoot td{background:#1a1a2e;color:#fff;padding:5px 8px;font-weight:700;border:none}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
@@ -873,6 +897,8 @@ function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, g
     <div class="ind-card"><div class="ind-lbl">Total USD comprado</div><div class="ind-val" style="color:#059669">US$ ${fmt2(somaUsd)}</div></div>
     <div class="ind-card"><div class="ind-lbl">Total BRL investido</div><div class="ind-val" style="color:#059669">R$ ${fmt2(somaBrl)}</div></div>
     <div class="ind-card"><div class="ind-lbl">Cotação média ponderada</div><div class="ind-val" style="color:#1d4ed8">${cotMedia!==null?'R$ '+fmt4(cotMedia)+' /US$':'—'}</div></div>
+    <div class="ind-card"><div class="ind-lbl">Menor cotação</div><div class="ind-val" style="color:#059669">${pCotMin?'R$ '+fmt4(pCotMin.cotacao):'—'}<div style="font-size:7pt;font-weight:400;color:#888;margin-top:2px">${pCotMin?isoD(pCotMin.data):''}</div></div></div>
+    <div class="ind-card"><div class="ind-lbl">Maior cotação</div><div class="ind-val" style="color:#dc2626">${pCotMax?'R$ '+fmt4(pCotMax.cotacao):'—'}<div style="font-size:7pt;font-weight:400;color:#888;margin-top:2px">${pCotMax?isoD(pCotMax.data):''}</div></div></div>
     <div class="ind-card ind-tot"><div class="ind-lbl">Saldo USD acumulado (global)</div><div class="ind-val" style="color:${saldoAtual>=0?'#6ee7b7':'#fca5a5'}">${saldoAtual>=0?'':'– '}US$ ${fmt2(saldoAtual)}</div></div>
   </div>
   <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
