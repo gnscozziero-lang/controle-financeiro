@@ -314,9 +314,13 @@ function selectYear() {
   if (ano) {
     g('flt-de').value = ano + '-01-01';
     g('flt-ate').value = ano + '-12-31';
+    g('flt-de').classList.add('flt-active');
+    g('flt-ate').classList.add('flt-active');
   } else {
     g('flt-de').value = '';
     g('flt-ate').value = '';
+    g('flt-de').classList.remove('flt-active');
+    g('flt-ate').classList.remove('flt-active');
   }
   applyFilters();
 }
@@ -373,7 +377,7 @@ async function loadData() {
       valor_usd: parseFloat(r.valor_usd) || 0,
       desc: r.descricao || ''
     }));
-    updDL(); updQuemSel();
+    updDL(); updQuemSel(); updAnoSel();
     setSave('ok', rows.length + ' lançamento(s) carregado(s)');
   } catch(e) {
     setSave('err', 'Erro ao carregar: ' + e.message);
@@ -650,6 +654,10 @@ function renderSumm(vis, hasFilter) {
       <div class="smbrl-item">
         <span class="smbrl-lbl">Cotação média ponderada${hasFilter ? ' (período)' : ''}</span>
         <span class="smbrl-val" style="color:#1d4ed8">${cotMedia !== null ? 'R$ ' + fmt4(cotMedia) + ' / US$' : '—'}</span>
+      </div>
+      <div class="smbrl-item">
+        <span class="smbrl-lbl">Total USD comprado${hasFilter ? ' (período)' : ''}</span>
+        <span class="smbrl-val" style="color:#059669">US$ ${fmt2(somaUsdEntradas)}</span>
       </div>
     </div>`;
 }
