@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f4f8;min-height:100vh;padding:24px 16px;color:#1a1a2e}
-.sheet{max-width:900px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden}
+.sheet{max-width:960px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.08);overflow:hidden}
 .hd{background:#1a1a2e;color:#fff;padding:16px 22px 14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .hdl small{font-size:9px;letter-spacing:.08em;text-transform:uppercase;opacity:.45;display:block}
 .hdl h1{font-size:18px;font-weight:500;letter-spacing:-.02em;margin-top:3px}
@@ -22,30 +22,45 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
 .hbtn:hover{background:rgba(255,255,255,.15)}
 .hdbal-lbl{font-size:8px;letter-spacing:.08em;text-transform:uppercase;opacity:.38;margin-bottom:1px;text-align:right}
 .hdbal-val{font-size:12px;line-height:1.6;opacity:.85;text-align:right}
-
 .lbar{height:3px;background:linear-gradient(90deg,transparent,rgba(110,231,183,.6),transparent);background-size:200%;animation:sh 1s linear infinite;display:none}
 .lbar.on{display:block}
 @keyframes sh{0%{background-position:200%}100%{background-position:-200%}}
 
+/* form */
 .fs{background:#f7f7fb;border-bottom:1px solid #e8e8f0;padding:12px 18px;display:flex;flex-direction:column;gap:7px}
 .fs.em{border-left:3px solid #f59e0b;padding-left:15px}
 .fr{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .fs select,.fs input{font-size:12px;height:30px;padding:0 9px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
 .fs select:focus,.fs input:focus{border-color:#1a1a2e}
 .fd{width:116px}.fti{width:100px}.fct{width:130px}.fmo{width:82px}.fva{width:94px}.fpm{width:140px}
-.fo{flex:1;min-width:180px}.fds{flex:1;min-width:180px}
+.fo{flex:1;min-width:160px}.fds{flex:1;min-width:160px}
 .emlbl{font-size:10.5px;font-weight:500;color:#b45309;display:none;white-space:nowrap;margin-left:4px}
 .badd{height:30px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:none;cursor:pointer;background:#1a1a2e;color:#fff;flex-shrink:0}
-.badd.sv{background:#0f6e56}
-.badd:active{transform:scale(.98)}
-.badd:disabled{opacity:.5;cursor:not-allowed}
+.badd.sv{background:#0f6e56}.badd:active{transform:scale(.98)}.badd:disabled{opacity:.5;cursor:not-allowed}
 .bcanc{height:30px;padding:0 11px;font-size:11.5px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:none;color:#666;flex-shrink:0;display:none}
 .bcanc:hover{border-color:#999;color:#333}
 
+/* filter bar */
+.fltbar{background:#fff;border-bottom:1px solid #e8e8f0;padding:8px 18px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fltbar label{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#888;white-space:nowrap}
+.fltbar input,.fltbar select{font-size:11.5px;height:28px;padding:0 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
+.fltbar input:focus,.fltbar select:focus{border-color:#1a1a2e}
+.flt-de{width:110px}.flt-ate{width:110px}.flt-conta{width:148px}.flt-ord{width:170px}
+.flt-sep{width:1px;height:18px;background:#e0e0e0;margin:0 2px}
+.flt-count{font-size:10px;color:#888;margin-left:auto;white-space:nowrap}
+.flt-clr{height:26px;padding:0 10px;font-size:10.5px;border-radius:5px;border:1px solid #ddd;cursor:pointer;background:none;color:#888}
+.flt-clr:hover{border-color:#999;color:#333}
+.flt-active{border-color:#2563eb!important;background:#eff6ff!important}
+
+/* table */
 .tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
 thead tr{background:#f7f7fb}
-th{padding:7px 8px;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #e8e8f0;text-align:left;white-space:nowrap}
+th{padding:7px 8px;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#666;border-bottom:1px solid #e8e8f0;text-align:left;white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:#1a1a2e}
+th.sorted{color:#2563eb}
+th .arr{margin-left:3px;opacity:.5;font-size:9px}
+th.sorted .arr{opacity:1}
 td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;max-width:130px}
 .pill{display:inline-block;width:8px;height:8px;border-radius:50%}
 .pe{background:#10b981}.ps{background:#ef4444}
@@ -61,8 +76,10 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
 .erow td{text-align:center;color:#aaa;padding:28px;font-size:12px}
 .editing-row{background:#eff6ff!important}
 
+/* summary */
 .sm{border-top:1px solid #e8e8f0;background:#f7f7fb}
-.smhd{padding:8px 18px 4px;font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#888}
+.smhd{padding:8px 18px 4px;font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#888;display:flex;align-items:center;gap:8px}
+.smhd .flt-tag{font-size:9px;padding:1px 7px;border-radius:10px;background:#dbeafe;color:#1d4ed8;font-weight:600}
 .smbd{padding:0 18px 8px}
 .smr{display:flex;align-items:baseline;gap:10px;font-size:11.5px;padding:4px 0;border-bottom:1px solid #eee}
 .smr:last-child{border-bottom:none}
@@ -72,24 +89,21 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
 .smtot{background:#fff;border-radius:6px;margin-top:2px}
 .smbrl{padding:8px 18px 10px;border-top:1px solid #e0e0ec;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px}
 .tg{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:600}
-.tgw{background:#fef3c7;color:#b45309}
-.tgs{background:#d1fae5;color:#065f46}
+.tgw{background:#fef3c7;color:#b45309}.tgs{background:#d1fae5;color:#065f46}
 
+/* status bar */
 .stbar{padding:5px 18px;font-size:9.5px;background:#f7f7fb;border-top:1px solid #e8e8f0;display:flex;justify-content:space-between;align-items:center;color:#888;flex-wrap:wrap;gap:4px}
 .sv-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#f59e0b;flex-shrink:0}
 .sv-ok{background:#10b981}.sv-err{background:#ef4444}.sv-ld{background:#f59e0b}
 
 @media(max-width:640px){
-  .hd{flex-direction:column;align-items:flex-start}
-  .hdr{align-items:flex-start}
-  .fd{width:100%}.fti,.fct,.fmo,.fva,.fpm{width:calc(50% - 3px)}
-  .fo,.fds{width:100%}
+  .hd{flex-direction:column;align-items:flex-start}.hdr{align-items:flex-start}
+  .fd{width:100%}.fti,.fct,.fmo,.fva,.fpm{width:calc(50% - 3px)}.fo,.fds{width:100%}
   table{font-size:10.5px}
 }
 </style>
 </head>
 <body>
-
 <div class="sheet">
 
   <div class="hd">
@@ -110,29 +124,23 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
 
   <div class="lbar" id="lbar"></div>
 
+  <!-- FORM -->
   <div class="fs" id="fs">
     <div class="fr">
       <input class="fd" type="date" id="fd"/>
-      <select class="fti" id="fti">
-        <option value="E">+ Entrada</option>
-        <option value="S">– Saída</option>
-      </select>
+      <select class="fti" id="fti"><option value="E">+ Entrada</option><option value="S">– Saída</option></select>
       <input class="fct" id="fct" list="dlc" placeholder="Conta" autocomplete="off"/>
       <datalist id="dlc"></datalist>
       <select class="fmo" id="fmo">
-        <option value="BRL">BRL  R$</option>
-        <option value="USD">USD  US$</option>
-        <option value="EUR">EUR  €</option>
-        <option value="GBP">GBP  £</option>
-        <option value="ARS">ARS  $</option>
-        <option value="CNY">CNY  ¥</option>
-        <option value="CHF">CHF  Fr</option>
-        <option value="PYG">PYG  ₲</option>
-        <option value="UYU">UYU  $U</option>
+        <option value="BRL">BRL R$</option><option value="USD">USD US$</option>
+        <option value="EUR">EUR €</option><option value="GBP">GBP £</option>
+        <option value="ARS">ARS $</option><option value="CNY">CNY ¥</option>
+        <option value="CHF">CHF Fr</option><option value="PYG">PYG ₲</option>
+        <option value="UYU">UYU $U</option>
       </select>
       <input class="fva" id="fva" type="number" placeholder="Valor" min="0" step="0.01"/>
       <input class="fpm" id="fpm" placeholder="Cotação paga (preço médio)"/>
-      <span class="emlbl" id="emlbl">✎ Editando lançamento</span>
+      <span class="emlbl" id="emlbl">✎ Editando</span>
       <button class="bcanc" id="bcanc" onclick="cancelEdit()">Cancelar</button>
       <button class="badd" id="badd" onclick="submit()">+ Lançar</button>
     </div>
@@ -142,21 +150,45 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
     </div>
   </div>
 
+  <!-- FILTER BAR -->
+  <div class="fltbar">
+    <label>De</label>
+    <input class="flt-de" type="date" id="flt-de" onchange="applyFilters()"/>
+    <label>Até</label>
+    <input class="flt-ate" type="date" id="flt-ate" onchange="applyFilters()"/>
+    <div class="flt-sep"></div>
+    <label>Conta</label>
+    <select class="flt-conta" id="flt-conta" onchange="applyFilters()">
+      <option value="">Todas as contas</option>
+    </select>
+    <div class="flt-sep"></div>
+    <label>Ordenar</label>
+    <select class="flt-ord" id="flt-ord" onchange="applyFilters()">
+      <option value="data-asc">Data ↑ (mais antiga)</option>
+      <option value="data-desc">Data ↓ (mais recente)</option>
+      <option value="conta-data-asc">Conta / Data ↑</option>
+      <option value="conta-data-desc">Conta / Data ↓</option>
+    </select>
+    <button class="flt-clr" onclick="clearFilters()">Limpar filtros</button>
+    <span class="flt-count" id="flt-count"></span>
+  </div>
+
+  <!-- TABLE -->
   <div class="tw">
     <table>
       <thead><tr>
-        <th style="width:14px"></th>
-        <th style="width:68px">Data</th>
-        <th style="width:100px">Conta</th>
-        <th style="width:120px">Descrição</th>
-        <th style="width:120px">Origem/Destino</th>
+        <th style="width:14px;cursor:default"></th>
+        <th style="width:72px" onclick="toggleSort('data')" id="th-data">Data <span class="arr">↕</span></th>
+        <th style="width:104px" onclick="toggleSort('conta')" id="th-conta">Conta <span class="arr">↕</span></th>
+        <th style="width:118px">Descrição</th>
+        <th style="width:118px">Origem/Destino</th>
         <th style="width:46px">Moeda</th>
         <th style="width:88px">Valor orig.</th>
-        <th style="width:88px">Cotação paga</th>
+        <th style="width:86px">Cotação paga</th>
         <th style="width:72px">Taxa oficial</th>
-        <th style="width:94px">Em BRL</th>
-        <th style="width:20px"></th>
-        <th style="width:20px"></th>
+        <th style="width:92px">Em BRL</th>
+        <th style="width:20px;cursor:default"></th>
+        <th style="width:20px;cursor:default"></th>
       </tr></thead>
       <tbody id="tb"></tbody>
     </table>
@@ -167,259 +199,289 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
   <div class="stbar">
     <span style="display:flex;align-items:center;gap:6px">
       <span class="sv-dot sv-ld" id="svdot"></span>
-      <span id="svlbl">Conectando ao banco de dados...</span>
+      <span id="svlbl">Conectando...</span>
     </span>
     <span id="stinfo"></span>
   </div>
 
 </div>
-
 <script>
-const SUPA_URL = 'https://qccmvbxiiqnegitjrunp.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjY212YnhpaXFuZWdpdGpydW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNDY5ODEsImV4cCI6MjA5MTYyMjk4MX0.kb9BIcAzr3WCSTCpZjpcll3bcc7_MWZSyFx1GiJ-akU';
-const { createClient } = supabase;
-const db = createClient(SUPA_URL, SUPA_KEY);
+const SUPA_URL='https://qccmvbxiiqnegitjrunp.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjY212YnhpaXFuZWdpdGpydW5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNDY5ODEsImV4cCI6MjA5MTYyMjk4MX0.kb9BIcAzr3WCSTCpZjpcll3bcc7_MWZSyFx1GiJ-akU';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
 
-let rows = [], editId = null, rates = {}, rSt = 'ld', rDate = '';
-const SYM = {BRL:'R$',USD:'US$',EUR:'€',GBP:'£',ARS:'$',CNY:'¥',CHF:'Fr',PYG:'₲',UYU:'$U'};
-const g = id => document.getElementById(id);
+let rows=[],editId=null,rates={},rSt='ld',rDate='';
+let sortKey='data',sortDir='asc';
+const SYM={BRL:'R$',USD:'US$',EUR:'€',GBP:'£',ARS:'$',CNY:'¥',CHF:'Fr',PYG:'₲',UYU:'$U'};
+const g=id=>document.getElementById(id);
+const fmt=v=>Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtTx=v=>v===1?'—':v<0.01?v.toFixed(6):v.toLocaleString('pt-BR',{minimumFractionDigits:4,maximumFractionDigits:4});
+const isoD=iso=>{if(!iso)return'—';const[y,m,d]=iso.split('-');return`${d}/${m}/${y}`;};
+const todayISO=()=>{const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+const getRate=m=>m==='BRL'?1:(rates[m]||null);
+const toBRL=r=>{const rt=getRate(r.moeda);return rt===null?null:r.valor*(r.tipo==='E'?1:-1)*rt;};
 
-const fmt = v => Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtTx = v => v===1?'—':v<0.01?v.toFixed(6):v.toLocaleString('pt-BR',{minimumFractionDigits:4,maximumFractionDigits:4});
-const isoD = iso => { if(!iso)return'—'; const[y,m,d]=iso.split('-'); return`${d}/${m}/${y}`; };
-const todayISO = () => { const d=new Date(); return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
-const getRate = m => m==='BRL'?1:(rates[m]||null);
-const toBRL = r => { const rt=getRate(r.moeda); return rt===null?null:r.valor*(r.tipo==='E'?1:-1)*rt; };
+g('fd').value=todayISO();
 
-g('fd').value = todayISO();
-
-function setSave(state, msg) {
-  g('svdot').className = 'sv-dot sv-'+state;
-  g('svlbl').textContent = msg;
+function setSave(state,msg){
+  g('svdot').className='sv-dot sv-'+state;
+  g('svlbl').textContent=msg;
 }
 
-async function loadData() {
-  setSave('ld','Carregando lançamentos...');
-  try {
-    const { data, error } = await db.from('lancamentos').select('*').order('created_at', {ascending:true});
-    if (error) throw error;
-    rows = (data||[]).map(r => ({
-      id: r.id,
-      data: r.data,
-      tipo: r.tipo,
-      conta: r.conta||'',
-      moeda: r.moeda,
-      valor: parseFloat(r.valor),
-      precomed: r.precomed||'',
-      origem: r.origem||'',
-      desc: r.descricao||''
-    }));
-    updDL();
-    setSave('ok', rows.length + ' lançamento(s) carregado(s)');
-  } catch(e) {
-    setSave('err','Erro ao carregar: '+e.message);
-  }
+// ── FILTERS ────────────────────────────────────────────────
+function getFiltered(){
+  const de=g('flt-de').value, ate=g('flt-ate').value;
+  const conta=g('flt-conta').value;
+  let res=rows.filter(r=>{
+    if(de&&r.data<de)return false;
+    if(ate&&r.data>ate)return false;
+    if(conta&&(r.conta||'')!==conta)return false;
+    return true;
+  });
+  // sort
+  const ord=g('flt-ord').value;
+  const [sk,sd]=ord.split('-').reduce((a,v,i,arr)=>{
+    if(arr.length===3) return[arr[0]+'-'+arr[1],arr[2]]; // conta-data-asc
+    return[arr[0],arr[1]];
+  },[]);
+  const key=ord.startsWith('conta')?'conta':'data';
+  const dir=ord.endsWith('desc')?-1:1;
+  res.sort((a,b)=>{
+    if(key==='conta'){
+      const ca=(a.conta||'').toLowerCase(), cb=(b.conta||'').toLowerCase();
+      if(ca!==cb)return ca<cb?-dir:dir;
+      return a.data<b.data?-1:1;
+    }
+    return a.data<b.data?-dir:dir;
+  });
+  return res;
+}
+
+function applyFilters(){
+  const de=g('flt-de').value, ate=g('flt-ate').value, conta=g('flt-conta').value;
+  g('flt-de').classList.toggle('flt-active',!!de);
+  g('flt-ate').classList.toggle('flt-active',!!ate);
+  g('flt-conta').classList.toggle('flt-active',!!conta);
   render();
 }
 
-function setSaveState(state, msg) { setSave(state, msg); }
+function clearFilters(){
+  g('flt-de').value=''; g('flt-ate').value=''; g('flt-conta').value='';
+  g('flt-ord').value='data-asc';
+  ['flt-de','flt-ate','flt-conta'].forEach(id=>g(id).classList.remove('flt-active'));
+  render();
+}
 
-async function insertRow(f) {
+function toggleSort(key){
+  const ord=g('flt-ord');
+  if(key==='data'){
+    const cur=ord.value;
+    ord.value=cur==='data-asc'?'data-desc':'data-asc';
+  } else {
+    const cur=ord.value;
+    ord.value=cur==='conta-data-asc'?'conta-data-desc':'conta-data-asc';
+  }
+  applyFilters();
+}
+
+function updContaSel(){
+  const sel=g('flt-conta'), cur=sel.value;
+  const contas=[...new Set(rows.filter(r=>r.conta).map(r=>r.conta))].sort();
+  sel.innerHTML='<option value="">Todas as contas</option>'+contas.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(contas.includes(cur))sel.value=cur;
+}
+
+// ── DATA ───────────────────────────────────────────────────
+async function loadData(){
+  setSave('ld','Carregando lançamentos...');
+  try{
+    const{data,error}=await db.from('lancamentos').select('*').order('created_at',{ascending:true});
+    if(error)throw error;
+    rows=(data||[]).map(r=>({
+      id:r.id,data:r.data,tipo:r.tipo,conta:r.conta||'',
+      moeda:r.moeda,valor:parseFloat(r.valor),precomed:r.precomed||'',
+      origem:r.origem||'',desc:r.descricao||''
+    }));
+    updDL(); updContaSel();
+    setSave('ok',rows.length+' lançamento(s) carregado(s)');
+  }catch(e){setSave('err','Erro ao carregar: '+e.message);}
+  render();
+}
+
+async function insertRow(f){
   setSave('ld','Salvando...');
-  try {
-    const { data, error } = await db.from('lancamentos').insert([{
-      data: f.data, tipo: f.tipo, conta: f.conta||null,
-      moeda: f.moeda, valor: f.valor, precomed: f.precomed||null,
-      origem: f.origem||null, descricao: f.desc||null
+  try{
+    const{data,error}=await db.from('lancamentos').insert([{
+      data:f.data,tipo:f.tipo,conta:f.conta||null,moeda:f.moeda,valor:f.valor,
+      precomed:f.precomed||null,origem:f.origem||null,descricao:f.desc||null
     }]).select().single();
-    if (error) throw error;
-    rows.push({id:data.id, data:data.data, tipo:data.tipo, conta:data.conta||'',
-      moeda:data.moeda, valor:parseFloat(data.valor), precomed:data.precomed||'',
-      origem:data.origem||'', desc:data.descricao||''});
-    updDL(); render();
+    if(error)throw error;
+    rows.push({id:data.id,data:data.data,tipo:data.tipo,conta:data.conta||'',
+      moeda:data.moeda,valor:parseFloat(data.valor),precomed:data.precomed||'',
+      origem:data.origem||'',desc:data.descricao||''});
+    updDL(); updContaSel(); render();
     setSave('ok','Salvo · '+rows.length+' lançamento(s)');
-  } catch(e) {
-    setSave('err','Erro ao salvar: '+e.message);
-  }
+  }catch(e){setSave('err','Erro ao salvar: '+e.message);}
 }
 
-async function updateRow(id, f) {
+async function updateRow(id,f){
   setSave('ld','Atualizando...');
-  try {
-    const { error } = await db.from('lancamentos').update({
-      data: f.data, tipo: f.tipo, conta: f.conta||null,
-      moeda: f.moeda, valor: f.valor, precomed: f.precomed||null,
-      origem: f.origem||null, descricao: f.desc||null
-    }).eq('id', id);
-    if (error) throw error;
-    const i = rows.findIndex(r=>r.id===id);
-    if(i>-1) rows[i] = {...rows[i], ...f};
-    updDL(); render();
+  try{
+    const{error}=await db.from('lancamentos').update({
+      data:f.data,tipo:f.tipo,conta:f.conta||null,moeda:f.moeda,valor:f.valor,
+      precomed:f.precomed||null,origem:f.origem||null,descricao:f.desc||null
+    }).eq('id',id);
+    if(error)throw error;
+    const i=rows.findIndex(r=>r.id===id);
+    if(i>-1)rows[i]={...rows[i],...f};
+    updDL(); updContaSel(); render();
     setSave('ok','Atualizado · '+rows.length+' lançamento(s)');
-  } catch(e) {
-    setSave('err','Erro ao atualizar: '+e.message);
-  }
+  }catch(e){setSave('err','Erro ao atualizar: '+e.message);}
 }
 
-async function deleteRow(id) {
-  if(!confirm('Excluir este lançamento?')) return;
-  if(editId===id) cancelEdit();
+async function deleteRow(id){
+  if(!confirm('Excluir este lançamento?'))return;
+  if(editId===id)cancelEdit();
   setSave('ld','Excluindo...');
-  try {
-    const { error } = await db.from('lancamentos').delete().eq('id', id);
-    if (error) throw error;
-    rows = rows.filter(r=>r.id!==id);
-    updDL(); render();
+  try{
+    const{error}=await db.from('lancamentos').delete().eq('id',id);
+    if(error)throw error;
+    rows=rows.filter(r=>r.id!==id);
+    updDL(); updContaSel(); render();
     setSave('ok',rows.length+' lançamento(s)');
-  } catch(e) {
-    setSave('err','Erro ao excluir: '+e.message);
-  }
+  }catch(e){setSave('err','Erro ao excluir: '+e.message);}
 }
 
-function fetchWithTimeout(url, ms) {
-  return new Promise((res,rej) => {
-    const t = setTimeout(()=>rej(new Error('timeout')), ms);
+// ── RATES ──────────────────────────────────────────────────
+function fetchWT(url,ms){
+  return new Promise((res,rej)=>{
+    const t=setTimeout(()=>rej(new Error('timeout')),ms);
     fetch(url).then(r=>{clearTimeout(t);res(r);}).catch(e=>{clearTimeout(t);rej(e);});
   });
 }
 
-async function fetchRates() {
-  rSt='ld'; updBadge();
-  g('lbar').classList.add('on');
-  try {
-    const res = await fetchWithTimeout('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json',7000);
-    if(!res.ok) throw 0;
-    const data = await res.json();
-    const inv = data.brl;
+async function fetchRates(){
+  rSt='ld';updBadge();g('lbar').classList.add('on');
+  try{
+    const res=await fetchWT('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/brl.json',7000);
+    if(!res.ok)throw 0;
+    const data=await res.json();
     ['usd','eur','gbp','ars','cny','chf','pyg','uyu'].forEach(m=>{
-      if(inv[m]&&inv[m]>0) rates[m.toUpperCase()]=1/inv[m];
+      if(data.brl[m]&&data.brl[m]>0)rates[m.toUpperCase()]=1/data.brl[m];
     });
-    rDate = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    rSt='ok'; g('lbar').classList.remove('on'); updBadge(); render(); return;
-  } catch(e){}
-  try {
-    const res = await fetchWithTimeout('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,GBP-BRL,ARS-BRL,CNY-BRL,CHF-BRL,PYG-BRL,UYU-BRL',7000);
-    if(!res.ok) throw 0;
-    const data = await res.json();
-    Object.entries(data).forEach(([k,v])=>{ rates[k.replace('BRL','')]=parseFloat(v.bid); });
-    rDate = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    rSt='ok'; g('lbar').classList.remove('on'); updBadge(); render(); return;
-  } catch(e){}
-  rSt='err';
-  g('lbar').classList.remove('on'); updBadge(); render();
+    rDate=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    rSt='ok';g('lbar').classList.remove('on');updBadge();render();return;
+  }catch(e){}
+  try{
+    const res=await fetchWT('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,GBP-BRL,ARS-BRL,CNY-BRL,CHF-BRL,PYG-BRL,UYU-BRL',7000);
+    if(!res.ok)throw 0;
+    const data=await res.json();
+    Object.entries(data).forEach(([k,v])=>{rates[k.replace('BRL','')]=parseFloat(v.bid);});
+    rDate=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    rSt='ok';g('lbar').classList.remove('on');updBadge();render();return;
+  }catch(e){}
+  rSt='err';g('lbar').classList.remove('on');updBadge();render();
 }
 
-function updBadge() {
-  const b = g('rbg');
-  if(rSt==='ok')      { b.className='rbg rb-ok';  b.textContent=`Câmbio ✓ ${rDate}  ↻`; }
-  else if(rSt==='err'){ b.className='rbg rb-err'; b.textContent='Câmbio indisponível — tentar ↻'; }
-  else                { b.className='rbg rb-ld';  b.textContent='Buscando câmbio...'; }
+function updBadge(){
+  const b=g('rbg');
+  if(rSt==='ok'){b.className='rbg rb-ok';b.textContent=`Câmbio ✓ ${rDate}  ↻`;}
+  else if(rSt==='err'){b.className='rbg rb-err';b.textContent='Câmbio indisponível ↻';}
+  else{b.className='rbg rb-ld';b.textContent='Buscando câmbio...';}
 }
 
-function updDL() {
-  g('dlc').innerHTML = [...new Set(rows.filter(r=>r.conta).map(r=>r.conta))].map(c=>`<option value="${c}">`).join('');
+function updDL(){
+  g('dlc').innerHTML=[...new Set(rows.filter(r=>r.conta).map(r=>r.conta))].map(c=>`<option value="${c}">`).join('');
 }
 
-function getForm() {
-  return {
-    tipo: g('fti').value, moeda: g('fmo').value,
-    valor: parseFloat(g('fva').value)||0,
-    precomed: g('fpm').value.trim(), conta: g('fct').value.trim(),
-    origem: g('fo').value.trim(), desc: g('fds').value.trim(),
-    data: g('fd').value||todayISO()
-  };
+// ── FORM ───────────────────────────────────────────────────
+function getForm(){
+  return{tipo:g('fti').value,moeda:g('fmo').value,valor:parseFloat(g('fva').value)||0,
+    precomed:g('fpm').value.trim(),conta:g('fct').value.trim(),
+    origem:g('fo').value.trim(),desc:g('fds').value.trim(),data:g('fd').value||todayISO()};
+}
+function clrForm(){['fva','fpm','fo','fds'].forEach(id=>g(id).value='');g('fd').value=todayISO();}
+
+async function submit(){
+  const f=getForm();
+  if(!f.valor||f.valor<=0){g('fva').focus();return;}
+  g('badd').disabled=true;
+  if(editId!==null){await updateRow(editId,f);cancelEdit();}
+  else{await insertRow(f);clrForm();}
+  g('badd').disabled=false;
 }
 
-function clrForm() {
-  ['fva','fpm','fo','fds'].forEach(id=>g(id).value='');
-  g('fd').value = todayISO();
+function startEdit(id){
+  editId=id;const r=rows.find(r=>r.id===id);if(!r)return;
+  g('fd').value=r.data;g('fti').value=r.tipo;g('fct').value=r.conta;
+  g('fmo').value=r.moeda;g('fva').value=r.valor;g('fpm').value=r.precomed||'';
+  g('fo').value=r.origem;g('fds').value=r.desc;
+  g('fs').classList.add('em');g('badd').textContent='Salvar';g('badd').classList.add('sv');
+  g('bcanc').style.display='';g('emlbl').style.display='';g('fva').focus();render();
 }
 
-async function submit() {
-  const f = getForm();
-  if(!f.valor||f.valor<=0){ g('fva').focus(); return; }
-  g('badd').disabled = true;
-  if(editId!==null) {
-    await updateRow(editId, f);
-    cancelEdit();
+function cancelEdit(){
+  editId=null;clrForm();g('fct').value='';g('fpm').value='';
+  g('fti').value='E';g('fmo').value='BRL';g('fs').classList.remove('em');
+  g('badd').textContent='+ Lançar';g('badd').classList.remove('sv');
+  g('bcanc').style.display='none';g('emlbl').style.display='none';render();
+}
+
+// ── RENDER ─────────────────────────────────────────────────
+function render(){
+  const tb=g('tb');
+  const vis=getFiltered();
+  const total=rows.length, filtered=vis.length;
+  const hasFilter=g('flt-de').value||g('flt-ate').value||g('flt-conta').value;
+  g('flt-count').textContent=hasFilter?`${filtered} de ${total} lançamento(s)`:`${total} lançamento(s)`;
+
+  // update sort arrows
+  const ord=g('flt-ord').value;
+  ['th-data','th-conta'].forEach(id=>{ const el=g(id); if(el)el.classList.remove('sorted'); });
+  if(ord.startsWith('data')){
+    g('th-data').classList.add('sorted');
+    g('th-data').querySelector('.arr').textContent=ord==='data-asc'?'↑':'↓';
   } else {
-    await insertRow(f);
-    clrForm();
+    g('th-conta').classList.add('sorted');
+    g('th-conta').querySelector('.arr').textContent=ord==='conta-data-asc'?'↑':'↓';
   }
-  g('badd').disabled = false;
-}
 
-function startEdit(id) {
-  editId = id;
-  const r = rows.find(r=>r.id===id);
-  if(!r) return;
-  g('fd').value=r.data; g('fti').value=r.tipo; g('fct').value=r.conta;
-  g('fmo').value=r.moeda; g('fva').value=r.valor; g('fpm').value=r.precomed||'';
-  g('fo').value=r.origem; g('fds').value=r.desc;
-  g('fs').classList.add('em');
-  g('badd').textContent='Salvar'; g('badd').classList.add('sv');
-  g('bcanc').style.display=''; g('emlbl').style.display='';
-  g('fva').focus(); render();
-}
-
-function cancelEdit() {
-  editId = null; clrForm();
-  g('fct').value=''; g('fpm').value='';
-  g('fti').value='E'; g('fmo').value='BRL';
-  g('fs').classList.remove('em');
-  g('badd').textContent='+ Lançar'; g('badd').classList.remove('sv');
-  g('bcanc').style.display='none'; g('emlbl').style.display='none';
-  render();
-}
-
-function render() {
-  const tb = g('tb');
-  if(!rows.length){
-    tb.innerHTML='<tr class="erow"><td colspan="12">Nenhum lançamento — use o formulário acima para começar</td></tr>';
-    g('hdbal').innerHTML=''; g('sm').style.display='none'; g('stinfo').textContent=''; return;
+  if(!vis.length){
+    tb.innerHTML=`<tr class="erow"><td colspan="12">${rows.length?'Nenhum lançamento corresponde aos filtros aplicados':'Nenhum lançamento — use o formulário acima para começar'}</td></tr>`;
+    if(!rows.length){g('hdbal').innerHTML='';g('sm').style.display='none';g('stinfo').textContent='';return;}
+  } else {
+    tb.innerHTML=vis.map(r=>{
+      const sym=SYM[r.moeda]||r.moeda,vc=r.tipo==='E'?'ve':'vs';
+      const signed=(r.tipo==='S'?'– ':'')+sym+' '+fmt(r.valor);
+      const rt=getRate(r.moeda);const brl=toBRL(r);
+      const pmH=r.precomed?`<span class="pm-val">R$ ${r.precomed}</span>`:`<span class="bnd">—</span>`;
+      const txH=rt&&r.moeda!=='BRL'?`<span class="tx-val">${fmtTx(rt)}</span>`:`<span class="tx-val">—</span>`;
+      const brlH=brl!==null?`<span class="${brl>=0?'bp':'bn'}">${brl>=0?'+ ':'– '}R$ ${fmt(brl)}</span>`:`<span class="bnd">N/D</span>`;
+      const eC=editId===r.id?' class="editing-row"':'';
+      return`<tr${eC}><td><span class="pill p${r.tipo.toLowerCase()}"></span></td><td style="color:#888;font-size:10.5px">${isoD(r.data)}</td><td title="${r.conta||''}">${r.conta||'—'}</td><td title="${r.desc||''}">${r.desc||'—'}</td><td title="${r.origem||''}">${r.origem||'—'}</td><td style="color:#888;font-size:10.5px">${r.moeda}</td><td class="${vc}">${signed}</td><td>${pmH}</td><td>${txH}</td><td>${brlH}</td><td><button class="be" onclick="startEdit(${r.id})" title="Editar">✎</button></td><td><button class="bdl" onclick="deleteRow(${r.id})" title="Excluir">✕</button></td></tr>`;
+    }).join('');
   }
-  tb.innerHTML = rows.map(r => {
-    const sym=SYM[r.moeda]||r.moeda, vc=r.tipo==='E'?'ve':'vs';
-    const signed=(r.tipo==='S'?'– ':'')+sym+' '+fmt(r.valor);
-    const rt=getRate(r.moeda); const brl=toBRL(r);
-    const pmH=r.precomed?`<span class="pm-val">R$ ${r.precomed}</span>`:`<span class="bnd">—</span>`;
-    const txH=rt&&r.moeda!=='BRL'?`<span class="tx-val">${fmtTx(rt)}</span>`:`<span class="tx-val">—</span>`;
-    const brlH=brl!==null?`<span class="${brl>=0?'bp':'bn'}">${brl>=0?'+ ':'– '}R$ ${fmt(brl)}</span>`:`<span class="bnd">N/D</span>`;
-    const eClass=editId===r.id?' class="editing-row"':'';
-    return `<tr${eClass}>
-      <td><span class="pill p${r.tipo.toLowerCase()}"></span></td>
-      <td style="color:#888;font-size:10.5px">${isoD(r.data)}</td>
-      <td title="${r.conta||''}">${r.conta||'—'}</td>
-      <td title="${r.desc||''}">${r.desc||'—'}</td>
-      <td title="${r.origem||''}">${r.origem||'—'}</td>
-      <td style="color:#888;font-size:10.5px">${r.moeda}</td>
-      <td class="${vc}">${signed}</td>
-      <td>${pmH}</td>
-      <td>${txH}</td>
-      <td>${brlH}</td>
-      <td><button class="be" onclick="startEdit(${r.id})" title="Editar">✎</button></td>
-      <td><button class="bdl" onclick="deleteRow(${r.id})" title="Excluir">✕</button></td>
-    </tr>`;
-  }).join('');
-  renderSumm();
-  g('stinfo').textContent = rows.length+' lançamento(s)';
+  renderSumm(vis,hasFilter);
+  g('stinfo').textContent=rows.length+' lançamento(s) total';
 }
 
-function compSumm() {
-  const cMap={}, mMap={};
-  rows.forEach(r=>{
-    const c=r.conta||'Sem conta', v=r.tipo==='E'?r.valor:-r.valor;
-    if(!cMap[c]) cMap[c]={};
+function compSumm(data){
+  const cMap={},mMap={};
+  data.forEach(r=>{
+    const c=r.conta||'Sem conta',v=r.tipo==='E'?r.valor:-r.valor;
+    if(!cMap[c])cMap[c]={};
     cMap[c][r.moeda]=(cMap[c][r.moeda]||0)+v;
     mMap[r.moeda]=(mMap[r.moeda]||0)+v;
   });
   return{cMap,mMap};
 }
 
-function renderSumm() {
-  const {cMap,mMap}=compSumm();
-  let totBRL=0, miss=0;
-  rows.forEach(r=>{ const b=toBRL(r); b!==null?totBRL+=b:miss++; });
+function renderSumm(vis,hasFilter){
+  const{cMap,mMap}=compSumm(vis);
+  let totBRL=0,miss=0;
+  vis.forEach(r=>{const b=toBRL(r);b!==null?totBRL+=b:miss++;});
+  const fltTag=hasFilter?`<span class="flt-tag">filtrado</span>`:'';
   const cHTML=Object.keys(cMap).map(c=>{
     const chips=Object.entries(cMap[c]).map(([m,v])=>`<span class="ch"><span class="${v>=0?'pos':'neg'}">${v>=0?'+ ':'– '}${SYM[m]||m} ${fmt(v)}</span> <span style="font-size:9px;opacity:.4">${m}</span></span>`).join('');
     return`<div class="smr"><span class="sml">${c}</span><div class="smv">${chips}</div></div>`;
@@ -428,82 +490,92 @@ function renderSumm() {
   const missT=miss>0?`<span class="tg tgw">${miss} s/taxa</span>`:`<span class="tg tgs">tudo convertido</span>`;
   const brlRow=`<div class="smbrl"><span style="color:#666">Total consolidado em BRL</span><strong style="font-size:14px;color:${totBRL>=0?'#059669':'#dc2626'}">${totBRL>=0?'+ ':'– '}R$ ${fmt(totBRL)}</strong>${missT}</div>`;
   const hdL=Object.entries(mMap).map(([m,v])=>`${v>=0?'+':'-'} ${SYM[m]||m} ${fmt(v)}`).join(' · ');
-  g('hdbal').innerHTML=`<div class="hdbal-lbl">Saldos</div><div class="hdbal-val">${hdL}</div>`;
+  g('hdbal').innerHTML=`<div class="hdbal-lbl">Saldos${hasFilter?' (filtrado)':''}</div><div class="hdbal-val">${hdL}</div>`;
   g('sm').style.display='';
-  g('sm').innerHTML=`<div class="smhd">Resumo por conta</div><div class="smbd">${cHTML}<div class="smr smtot"><span class="sml" style="font-weight:600">Total por moeda</span><div class="smv">${tC}</div></div></div>${brlRow}`;
+  g('sm').innerHTML=`<div class="smhd">Resumo por conta ${fltTag}</div><div class="smbd">${cHTML}<div class="smr smtot"><span class="sml" style="font-weight:600">Total por moeda</span><div class="smv">${tC}</div></div></div>${brlRow}`;
 }
 
-function exportJSON() {
+// ── EXPORT / IMPORT ────────────────────────────────────────
+function exportJSON(){
   const blob=new Blob([JSON.stringify({rows,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='controle-fin-'+todayISO()+'.json';
-  a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='controle-fin-'+todayISO()+'.json';a.click();
 }
 
-function importJSON(e) {
-  const file=e.target.files[0]; if(!file) return;
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=async ev=>{
     try{
       const d=JSON.parse(ev.target.result);
-      if(!Array.isArray(d.rows)) throw 0;
+      if(!Array.isArray(d.rows))throw 0;
       let count=0;
       for(const r of d.rows){
-        const exists=rows.some(x=>x.id===r.id);
-        if(!exists){
+        if(!rows.some(x=>x.id===r.id)){
           await db.from('lancamentos').insert([{
-            data:r.data,tipo:r.tipo,conta:r.conta||null,moeda:r.moeda,
-            valor:r.valor,precomed:r.precomed||null,origem:r.origem||null,descricao:r.desc||null
+            data:r.data,tipo:r.tipo,conta:r.conta||null,moeda:r.moeda,valor:r.valor,
+            precomed:r.precomed||null,origem:r.origem||null,descricao:r.desc||null
           }]);
           count++;
         }
       }
-      await loadData();
-      alert(count+' lançamento(s) importado(s) com sucesso.');
+      await loadData();alert(count+' lançamento(s) importado(s).');
     }catch{alert('Arquivo inválido.');}
     e.target.value='';
   };
   reader.readAsText(file);
 }
 
-function printReport() {
-  if(!rows.length) return;
-  const {cMap,mMap}=compSumm();
-  const contas=[...new Set(rows.map(r=>r.conta||'Sem conta'))];
-  let grand=0, miss=0;
-  rows.forEach(r=>{ const b=toBRL(r); b!==null?grand+=b:miss++; });
+// ── PRINT ──────────────────────────────────────────────────
+function printReport(){
+  const vis=getFiltered();
+  if(!vis.length){alert('Nenhum lançamento para imprimir com os filtros atuais.');return;}
+  const{cMap,mMap}=compSumm(vis);
+  const contas=[...new Set(vis.map(r=>r.conta||'Sem conta'))];
+  let grand=0,miss=0;vis.forEach(r=>{const b=toBRL(r);b!==null?grand+=b:miss++;});
+
+  // filter description for header
+  const de=g('flt-de').value, ate=g('flt-ate').value, fc=g('flt-conta').value;
+  const fltDesc=[de?'De: '+isoD(de):'', ate?'Até: '+isoD(ate):'', fc?'Conta: '+fc:''].filter(Boolean).join('  |  ');
+
   let body='';
   contas.forEach(conta=>{
-    const cR=rows.filter(r=>(r.conta||'Sem conta')===conta);
+    const cR=vis.filter(r=>(r.conta||'Sem conta')===conta);
     const trs=cR.map(r=>{
-      const rt=getRate(r.moeda); const brl=toBRL(r);
-      const ec=r.tipo==='E'?'#059669':'#dc2626';
+      const rt=getRate(r.moeda);const brl=toBRL(r);const ec=r.tipo==='E'?'#059669':'#dc2626';
       return`<tr><td style="color:${ec};font-weight:700">${r.tipo==='E'?'Entrada':'Saída'}</td><td>${isoD(r.data)}</td><td>${r.desc||'—'}</td><td>${r.origem||'—'}</td><td>${r.moeda}</td><td style="color:${ec};font-weight:600">${(r.tipo==='S'?'– ':'')+((SYM[r.moeda]||r.moeda))+' '+fmt(r.valor)}</td><td class="mu">${r.precomed?'R$ '+r.precomed:'—'}</td><td class="mu">${rt&&r.moeda!=='BRL'?fmtTx(rt):'—'}</td><td style="color:${brl!==null?(brl>=0?'#059669':'#dc2626'):'#999'};font-weight:700">${brl!==null?(brl>=0?'+ ':'– ')+'R$ '+fmt(brl):'N/D'}</td></tr>`;
     }).join('');
-    const mNet={};
-    cR.forEach(r=>{ const v=r.tipo==='E'?r.valor:-r.valor; mNet[r.moeda]=(mNet[r.moeda]||0)+v; });
-    let cBRL=0; cR.forEach(r=>{ const b=toBRL(r); if(b!==null)cBRL+=b; });
+    const mNet={};cR.forEach(r=>{const v=r.tipo==='E'?r.valor:-r.valor;mNet[r.moeda]=(mNet[r.moeda]||0)+v;});
+    let cBRL=0;cR.forEach(r=>{const b=toBRL(r);if(b!==null)cBRL+=b;});
     body+=`<div class="ch">CONTA: ${conta.toUpperCase()}</div><table><thead><tr><th>Tipo</th><th>Data</th><th>Descrição</th><th>Origem/Destino</th><th>Moeda</th><th>Valor orig.</th><th>Cotação paga</th><th>Taxa oficial</th><th>Em BRL</th></tr></thead><tbody>${trs}</tbody></table><div class="sub">Saldo <b>${conta}</b>: ${Object.entries(mNet).map(([m,v])=>`${v>=0?'+':'-'} ${SYM[m]||m} ${fmt(v)}`).join(' | ')} &nbsp;|&nbsp; BRL: <b>R$ ${fmt(cBRL)}</b></div>`;
   });
+
   const mRows=Object.entries(mMap).map(([m,v])=>`<tr><td>${m}</td><td>${SYM[m]||m}</td><td style="color:${v>=0?'#059669':'#dc2626'};font-weight:700">${v>=0?'+ ':'– '}${SYM[m]||m} ${fmt(v)}</td></tr>`).join('');
   body+=`<div class="sh">TOTAL POR MOEDA</div><table><thead><tr><th>Código</th><th>Símbolo</th><th>Saldo líquido</th></tr></thead><tbody>${mRows}</tbody></table>`;
+
   const brlRows=Object.keys(mMap).map(m=>{
-    const mR=rows.filter(r=>r.moeda===m); let mB=0,mMs=0;
-    mR.forEach(r=>{ const b=toBRL(r); b!==null?mB+=b:mMs++; });
+    const mR=vis.filter(r=>r.moeda===m);let mB=0,mMs=0;
+    mR.forEach(r=>{const b=toBRL(r);b!==null?mB+=b:mMs++;});
     const rt=m==='BRL'?1:rates[m];
     return`<tr><td>${m}</td><td>${m==='BRL'?'R$ 1,00':rt?fmtTx(rt):'—'}</td><td>${(SYM[m]||m)+' '+fmt(mMap[m])}</td><td style="color:#059669;font-weight:700">${mMs<mR.length?'R$ '+fmt(mB):'—'}</td></tr>`;
   }).join('');
   body+=`<div class="sh">TOTAL CONVERTIDO PARA REAL</div><table><thead><tr><th>Moeda</th><th>Taxa</th><th>Total original</th><th>Em BRL</th></tr></thead><tbody>${brlRows}</tbody><tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTAL GERAL EM BRL</td><td style="font-weight:700;font-size:11pt;color:${grand>=0?'#059669':'#dc2626'}">${grand>=0?'+ ':'– '}R$ ${fmt(grand)}</td></tr></tfoot></table>`;
+
+  const fltHd=fltDesc?`<div class="flt-hd">Filtros aplicados: ${fltDesc}</div>`:'';
   const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Financeiro</title><style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.ch{background:#2d2d50;color:#fff;padding:4px 10px;font-size:8pt;font-weight:700;margin:12px 0 0}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:4px 10px;margin:14px 0 0;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;margin-bottom:2px;font-size:7.5pt}th{background:#f0f0f8;padding:3px 5px;text-align:left;font-size:6.5pt;font-weight:700;border-bottom:1px solid #ddd}td{padding:2.5px 5px;border-bottom:.5px solid #eee;vertical-align:middle}tfoot td{background:#1a1a2e;color:#fff;padding:4px 5px;border:none}.mu{color:#777;font-size:7pt}.sub{font-size:7pt;padding:3px 8px;background:#f8f8fc;border-left:2px solid #2d2d50;margin-bottom:8px}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style></head><body><button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button><div class="hd"><div><small>CONTROLE FINANCEIRO</small><h1>Demonstrativo por Conta</h1></div><div class="hdr"><div>${isoD(todayISO())}</div><div>${rSt==='ok'?'Câmbio: taxa do dia':'Câmbio indisponível'}</div></div></div>${body}<div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div><script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Financeiro</title>
+  <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7.5pt;padding:5px 0 10px;color:#444;border-bottom:1px solid #ddd;margin-bottom:8px}.ch{background:#2d2d50;color:#fff;padding:4px 10px;font-size:8pt;font-weight:700;margin:12px 0 0}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:4px 10px;margin:14px 0 0;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;margin-bottom:2px;font-size:7.5pt}th{background:#f0f0f8;padding:3px 5px;text-align:left;font-size:6.5pt;font-weight:700;border-bottom:1px solid #ddd}td{padding:2.5px 5px;border-bottom:.5px solid #eee;vertical-align:middle}tfoot td{background:#1a1a2e;color:#fff;padding:4px 5px;border:none}.mu{color:#777;font-size:7pt}.sub{font-size:7pt;padding:3px 8px;background:#f8f8fc;border-left:2px solid #2d2d50;margin-bottom:8px}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
+  </head><body>
+  <button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button>
+  <div class="hd"><div><small>CONTROLE FINANCEIRO — ENTRADAS E SAÍDAS</small><h1>Demonstrativo por Conta</h1></div><div class="hdr"><div>${isoD(todayISO())}</div><div>${rSt==='ok'?'Câmbio: taxa do dia':'Câmbio indisponível'}</div></div></div>
+  ${fltHd}${body}
+  <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
   w.document.close();
 }
 
-document.addEventListener('keydown', e=>{
-  if(e.key==='Enter' && document.activeElement?.id!=='badd') submit();
-});
-
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement?.id!=='badd')submit();});
 loadData();
 fetchRates();
 </script>
