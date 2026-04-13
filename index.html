@@ -75,6 +75,11 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
 .bdl:hover{opacity:1;color:#dc2626}
 .erow td{text-align:center;color:#aaa;padding:28px;font-size:12px}
 .editing-row{background:#eff6ff!important}
+tfoot tr td{background:#1a1a2e;color:#fff;padding:6px 8px;font-size:10.5px;font-weight:600;border:none;white-space:nowrap}
+tfoot tr td.sub-orig{color:#6ee7b7}
+tfoot tr td.sub-brl{color:#6ee7b7;font-size:11px}
+tfoot tr td.sub-neg{color:#fca5a5}
+tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05em;text-transform:uppercase}
 
 /* summary */
 .sm{border-top:1px solid #e8e8f0;background:#f7f7fb}
@@ -191,6 +196,7 @@ td{padding:6px 8px;border-bottom:1px solid #f0f0f6;color:#1a1a2e;overflow:hidden
         <th style="width:20px;cursor:default"></th>
       </tr></thead>
       <tbody id="tb"></tbody>
+      <tfoot id="tf" style="display:none"><tr id="tf-row"></tr></tfoot>
     </table>
   </div>
 
@@ -231,29 +237,23 @@ function setSave(state,msg){
 
 // ── FILTERS ────────────────────────────────────────────────
 function getFiltered(){
-  const de=g('flt-de').value, ate=g('flt-ate').value;
-  const conta=g('flt-conta').value;
+  const de=g('flt-de').value, ate=g('flt-ate').value, conta=g('flt-conta').value;
   let res=rows.filter(r=>{
     if(de&&r.data<de)return false;
     if(ate&&r.data>ate)return false;
     if(conta&&(r.conta||'')!==conta)return false;
     return true;
   });
-  // sort
   const ord=g('flt-ord').value;
-  const [sk,sd]=ord.split('-').reduce((a,v,i,arr)=>{
-    if(arr.length===3) return[arr[0]+'-'+arr[1],arr[2]]; // conta-data-asc
-    return[arr[0],arr[1]];
-  },[]);
-  const key=ord.startsWith('conta')?'conta':'data';
-  const dir=ord.endsWith('desc')?-1:1;
+  const byData=!ord.startsWith('conta');
+  const desc=ord.endsWith('desc');
   res.sort((a,b)=>{
-    if(key==='conta'){
+    if(!byData){
       const ca=(a.conta||'').toLowerCase(), cb=(b.conta||'').toLowerCase();
-      if(ca!==cb)return ca<cb?-dir:dir;
-      return a.data<b.data?-1:1;
+      if(ca!==cb)return ca<cb?-1:1;
     }
-    return a.data<b.data?-dir:dir;
+    if(a.data!==b.data)return (a.data<b.data?-1:1)*(desc?-1:1);
+    return 0;
   });
   return res;
 }
@@ -429,6 +429,44 @@ function cancelEdit(){
 }
 
 // ── RENDER ─────────────────────────────────────────────────
+function buildSubtotal(vis){
+  // per-moeda net in original currency + BRL total
+  const mEnt={}, mSai={}, mNet={};
+  let totBRL=0, miss=0;
+  vis.forEach(r=>{
+    const v=r.valor;
+    if(r.tipo==='E'){mEnt[r.moeda]=(mEnt[r.moeda]||0)+v; mNet[r.moeda]=(mNet[r.moeda]||0)+v;}
+    else{mSai[r.moeda]=(mSai[r.moeda]||0)+v; mNet[r.moeda]=(mNet[r.moeda]||0)-v;}
+    const b=toBRL(r); b!==null?totBRL+=b:miss++;
+  });
+  return{mEnt,mSai,mNet,totBRL,miss};
+}
+
+function renderSubtotal(vis){
+  const tf=g('tf'), tfrow=g('tf-row');
+  if(!vis.length){tf.style.display='none';return;}
+  const{mNet,totBRL,miss}=buildSubtotal(vis);
+  const moedas=Object.keys(mNet);
+  // build cells: label | per-moeda net | separator | BRL total
+  let cells=`<td class="sub-lbl" style="padding-right:12px">${vis.length} lançamento(s)</td>`;
+  cells+=`<td colspan="5"></td>`;
+  // valor orig — show net per moeda
+  const netStr=moedas.map(m=>{
+    const v=mNet[m];
+    return`<span style="margin-right:8px;color:${v>=0?'#6ee7b7':'#fca5a5'}">${v>=0?'+ ':'– '}${SYM[m]||m} ${fmt(v)}</span>`;
+  }).join('');
+  cells+=`<td colspan="2">${netStr||'—'}</td>`;
+  // taxa col empty
+  cells+=`<td></td>`;
+  // BRL total
+  const brlC=totBRL>=0?'sub-orig':'sub-neg';
+  const brlStr=miss>0&&moedas.length===1&&moedas[0]==='BRL'?'—':`${totBRL>=0?'+ ':'– '}R$ ${fmt(totBRL)}`;
+  cells+=`<td class="${brlC}">${brlStr}</td>`;
+  cells+=`<td colspan="2"></td>`;
+  tfrow.innerHTML=cells;
+  tf.style.display='';
+}
+
 function render(){
   const tb=g('tb');
   const vis=getFiltered();
@@ -436,21 +474,22 @@ function render(){
   const hasFilter=g('flt-de').value||g('flt-ate').value||g('flt-conta').value;
   g('flt-count').textContent=hasFilter?`${filtered} de ${total} lançamento(s)`:`${total} lançamento(s)`;
 
-  // update sort arrows
+  // sort arrows
   const ord=g('flt-ord').value;
-  ['th-data','th-conta'].forEach(id=>{ const el=g(id); if(el)el.classList.remove('sorted'); });
+  ['th-data','th-conta'].forEach(id=>{const el=g(id);if(el)el.classList.remove('sorted');});
   if(ord.startsWith('data')){
     g('th-data').classList.add('sorted');
     g('th-data').querySelector('.arr').textContent=ord==='data-asc'?'↑':'↓';
-  } else {
+  }else{
     g('th-conta').classList.add('sorted');
     g('th-conta').querySelector('.arr').textContent=ord==='conta-data-asc'?'↑':'↓';
   }
 
   if(!vis.length){
     tb.innerHTML=`<tr class="erow"><td colspan="12">${rows.length?'Nenhum lançamento corresponde aos filtros aplicados':'Nenhum lançamento — use o formulário acima para começar'}</td></tr>`;
+    g('tf').style.display='none';
     if(!rows.length){g('hdbal').innerHTML='';g('sm').style.display='none';g('stinfo').textContent='';return;}
-  } else {
+  }else{
     tb.innerHTML=vis.map(r=>{
       const sym=SYM[r.moeda]||r.moeda,vc=r.tipo==='E'?'ve':'vs';
       const signed=(r.tipo==='S'?'– ':'')+sym+' '+fmt(r.valor);
@@ -461,6 +500,7 @@ function render(){
       const eC=editId===r.id?' class="editing-row"':'';
       return`<tr${eC}><td><span class="pill p${r.tipo.toLowerCase()}"></span></td><td style="color:#888;font-size:10.5px">${isoD(r.data)}</td><td title="${r.conta||''}">${r.conta||'—'}</td><td title="${r.desc||''}">${r.desc||'—'}</td><td title="${r.origem||''}">${r.origem||'—'}</td><td style="color:#888;font-size:10.5px">${r.moeda}</td><td class="${vc}">${signed}</td><td>${pmH}</td><td>${txH}</td><td>${brlH}</td><td><button class="be" onclick="startEdit(${r.id})" title="Editar">✎</button></td><td><button class="bdl" onclick="deleteRow(${r.id})" title="Excluir">✕</button></td></tr>`;
     }).join('');
+    renderSubtotal(vis);
   }
   renderSumm(vis,hasFilter);
   g('stinfo').textContent=rows.length+' lançamento(s) total';
@@ -532,22 +572,24 @@ function printReport(){
   if(!vis.length){alert('Nenhum lançamento para imprimir com os filtros atuais.');return;}
   const{cMap,mMap}=compSumm(vis);
   const contas=[...new Set(vis.map(r=>r.conta||'Sem conta'))];
-  let grand=0,miss=0;vis.forEach(r=>{const b=toBRL(r);b!==null?grand+=b:miss++;});
+  const{mNet:gNet,totBRL:gBRL,miss:gMiss}=buildSubtotal(vis);
 
-  // filter description for header
-  const de=g('flt-de').value, ate=g('flt-ate').value, fc=g('flt-conta').value;
-  const fltDesc=[de?'De: '+isoD(de):'', ate?'Até: '+isoD(ate):'', fc?'Conta: '+fc:''].filter(Boolean).join('  |  ');
+  const de=g('flt-de').value,ate=g('flt-ate').value,fc=g('flt-conta').value;
+  const ord=g('flt-ord').value;
+  const ordLabel={'data-asc':'Data ↑','data-desc':'Data ↓','conta-data-asc':'Conta/Data ↑','conta-data-desc':'Conta/Data ↓'}[ord]||ord;
+  const fltParts=[de?'De: '+isoD(de):'',ate?'Até: '+isoD(ate):'',fc?'Conta: '+fc:'','Ordem: '+ordLabel].filter(Boolean);
 
   let body='';
   contas.forEach(conta=>{
     const cR=vis.filter(r=>(r.conta||'Sem conta')===conta);
+    const{mNet,totBRL}=buildSubtotal(cR);
     const trs=cR.map(r=>{
       const rt=getRate(r.moeda);const brl=toBRL(r);const ec=r.tipo==='E'?'#059669':'#dc2626';
       return`<tr><td style="color:${ec};font-weight:700">${r.tipo==='E'?'Entrada':'Saída'}</td><td>${isoD(r.data)}</td><td>${r.desc||'—'}</td><td>${r.origem||'—'}</td><td>${r.moeda}</td><td style="color:${ec};font-weight:600">${(r.tipo==='S'?'– ':'')+((SYM[r.moeda]||r.moeda))+' '+fmt(r.valor)}</td><td class="mu">${r.precomed?'R$ '+r.precomed:'—'}</td><td class="mu">${rt&&r.moeda!=='BRL'?fmtTx(rt):'—'}</td><td style="color:${brl!==null?(brl>=0?'#059669':'#dc2626'):'#999'};font-weight:700">${brl!==null?(brl>=0?'+ ':'– ')+'R$ '+fmt(brl):'N/D'}</td></tr>`;
     }).join('');
-    const mNet={};cR.forEach(r=>{const v=r.tipo==='E'?r.valor:-r.valor;mNet[r.moeda]=(mNet[r.moeda]||0)+v;});
-    let cBRL=0;cR.forEach(r=>{const b=toBRL(r);if(b!==null)cBRL+=b;});
-    body+=`<div class="ch">CONTA: ${conta.toUpperCase()}</div><table><thead><tr><th>Tipo</th><th>Data</th><th>Descrição</th><th>Origem/Destino</th><th>Moeda</th><th>Valor orig.</th><th>Cotação paga</th><th>Taxa oficial</th><th>Em BRL</th></tr></thead><tbody>${trs}</tbody></table><div class="sub">Saldo <b>${conta}</b>: ${Object.entries(mNet).map(([m,v])=>`${v>=0?'+':'-'} ${SYM[m]||m} ${fmt(v)}`).join(' | ')} &nbsp;|&nbsp; BRL: <b>R$ ${fmt(cBRL)}</b></div>`;
+    const netStr=Object.entries(mNet).map(([m,v])=>`${v>=0?'+ ':'– '}${SYM[m]||m} ${fmt(v)}`).join('  |  ');
+    const subRow=`<tr class="strow"><td colspan="5" style="text-align:right;font-size:6.5pt;font-weight:700;color:#fff">Subtotal ${conta}:</td><td colspan="2" style="color:#6ee7b7;font-weight:700;font-size:7pt">${netStr}</td><td></td><td style="color:#6ee7b7;font-weight:700;font-size:7pt">${totBRL>=0?'+ ':'– '}R$ ${fmt(totBRL)}</td></tr>`;
+    body+=`<div class="ch">CONTA: ${conta.toUpperCase()}</div><table><thead><tr><th>Tipo</th><th>Data</th><th>Descrição</th><th>Origem/Destino</th><th>Moeda</th><th>Valor orig.</th><th>Cotação paga</th><th>Taxa oficial</th><th>Em BRL</th></tr></thead><tbody>${trs}</tbody><tfoot>${subRow}</tfoot></table>`;
   });
 
   const mRows=Object.entries(mMap).map(([m,v])=>`<tr><td>${m}</td><td>${SYM[m]||m}</td><td style="color:${v>=0?'#059669':'#dc2626'};font-weight:700">${v>=0?'+ ':'– '}${SYM[m]||m} ${fmt(v)}</td></tr>`).join('');
@@ -557,18 +599,18 @@ function printReport(){
     const mR=vis.filter(r=>r.moeda===m);let mB=0,mMs=0;
     mR.forEach(r=>{const b=toBRL(r);b!==null?mB+=b:mMs++;});
     const rt=m==='BRL'?1:rates[m];
-    return`<tr><td>${m}</td><td>${m==='BRL'?'R$ 1,00':rt?fmtTx(rt):'—'}</td><td>${(SYM[m]||m)+' '+fmt(mMap[m])}</td><td style="color:#059669;font-weight:700">${mMs<mR.length?'R$ '+fmt(mB):'—'}</td></tr>`;
+    return`<tr><td>${m}</td><td>${m==='BRL'?'R$ 1,00':rt?fmtTx(rt):'—'}</td><td>${(SYM[m]||m)+' '+fmt(mMap[m])}</td><td style="color:${gBRL>=0?'#059669':'#dc2626'};font-weight:700">${mMs<mR.length?'R$ '+fmt(mB):'—'}</td></tr>`;
   }).join('');
-  body+=`<div class="sh">TOTAL CONVERTIDO PARA REAL</div><table><thead><tr><th>Moeda</th><th>Taxa</th><th>Total original</th><th>Em BRL</th></tr></thead><tbody>${brlRows}</tbody><tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTAL GERAL EM BRL</td><td style="font-weight:700;font-size:11pt;color:${grand>=0?'#059669':'#dc2626'}">${grand>=0?'+ ':'– '}R$ ${fmt(grand)}</td></tr></tfoot></table>`;
+  body+=`<div class="sh">TOTAL CONVERTIDO PARA REAL (TAXA OFICIAL DO DIA)</div><table><thead><tr><th>Moeda</th><th>Taxa</th><th>Total original</th><th>Em BRL</th></tr></thead><tbody>${brlRows}</tbody><tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTAL GERAL EM BRL${gMiss>0?' ('+gMiss+' s/taxa)':''}</td><td style="font-weight:700;font-size:10pt;color:${gBRL>=0?'#6ee7b7':'#fca5a5'}">${gBRL>=0?'+ ':'– '}R$ ${fmt(gBRL)}</td></tr></tfoot></table>`;
 
-  const fltHd=fltDesc?`<div class="flt-hd">Filtros aplicados: ${fltDesc}</div>`:'';
   const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Financeiro</title>
-  <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7.5pt;padding:5px 0 10px;color:#444;border-bottom:1px solid #ddd;margin-bottom:8px}.ch{background:#2d2d50;color:#fff;padding:4px 10px;font-size:8pt;font-weight:700;margin:12px 0 0}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:4px 10px;margin:14px 0 0;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;margin-bottom:2px;font-size:7.5pt}th{background:#f0f0f8;padding:3px 5px;text-align:left;font-size:6.5pt;font-weight:700;border-bottom:1px solid #ddd}td{padding:2.5px 5px;border-bottom:.5px solid #eee;vertical-align:middle}tfoot td{background:#1a1a2e;color:#fff;padding:4px 5px;border:none}.mu{color:#777;font-size:7pt}.sub{font-size:7pt;padding:3px 8px;background:#f8f8fc;border-left:2px solid #2d2d50;margin-bottom:8px}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
+  <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7pt;padding:5px 0 8px;color:#555;border-bottom:1px solid #ddd;margin-bottom:10px}.ch{background:#2d2d50;color:#fff;padding:4px 10px;font-size:8pt;font-weight:700;margin:12px 0 0}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:4px 10px;margin:14px 0 0;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;margin-bottom:2px;font-size:7.5pt}th{background:#f0f0f8;padding:3px 5px;text-align:left;font-size:6.5pt;font-weight:700;border-bottom:1px solid #ddd}td{padding:2.5px 5px;border-bottom:.5px solid #eee;vertical-align:middle}tfoot td,.strow td{background:#1a1a2e;color:#fff;padding:4px 5px;border:none}.mu{color:#777;font-size:7pt}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
   </head><body>
   <button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button>
   <div class="hd"><div><small>CONTROLE FINANCEIRO — ENTRADAS E SAÍDAS</small><h1>Demonstrativo por Conta</h1></div><div class="hdr"><div>${isoD(todayISO())}</div><div>${rSt==='ok'?'Câmbio: taxa do dia':'Câmbio indisponível'}</div></div></div>
-  ${fltHd}${body}
+  <div class="flt-hd">${fltParts.join('  |  ')}</div>
+  ${body}
   <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
   <script>window.onload=()=>window.print()<\/script>
   </body></html>`);
