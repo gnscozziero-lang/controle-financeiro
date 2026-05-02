@@ -144,6 +144,7 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
 </head>
 <body>
 <div class="sheet">
+  <iframe id="printFrame" style="display:none;width:0;height:0;border:none" title="print"></iframe>
 
   <!-- SETUP BANNER — remova após configurar o Supabase -->
   <div class="setup-banner" id="setupBanner" style="display:none">
@@ -152,7 +153,7 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
 
   <div class="hd">
     <div class="hdl">
-      <small>Controle de Dólar</small>
+      <small>Controle de Dólar · V.4</small>
       <h1 style="display:flex;align-items:center;gap:10px">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 680" width="36" height="36" style="border-radius:8px;flex-shrink:0">
           <rect width="680" height="680" fill="#1a1a2e"/>
@@ -968,13 +969,10 @@ function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, g
     <div class="ind-card ind-tot"><div class="ind-lbl">Saldo USD acumulado (global)</div><div class="ind-val" style="color:${saldoAtual>=0?'#6ee7b7':'#fca5a5'}">${saldoAtual>=0?'':'– '}US$ ${fmt2(saldoAtual)}</div></div>
   </div>
   <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
-  <script>window.onload=()=>window.print()<\/script>
   </body></html>`;
-  const _blob1 = new Blob([_html1], {type:'text/html'});
-  const _url1 = URL.createObjectURL(_blob1);
-  const w1 = window.open(_url1, '_blank');
-  if (w1) { setTimeout(() => URL.revokeObjectURL(_url1), 10000); setTimeout(() => window.focus(), 300); }
-  else alert('Popup bloqueado. Permita popups para este site e tente novamente.');
+  const _frame1 = g('printFrame');
+  _frame1.srcdoc = _html1;
+  _frame1.onload = () => { _frame1.contentWindow.focus(); _frame1.contentWindow.print(); };
 }
 
 function printReport() {
@@ -1071,13 +1069,10 @@ function printReport() {
   <div class="flt-hd">${fltParts.join('  |  ')}</div>
   ${body}
   <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
-  <script>window.onload=()=>window.print()<\/script>
   </body></html>`;
-  const _blob2 = new Blob([_html2], {type:'text/html'});
-  const _url2 = URL.createObjectURL(_blob2);
-  const w2 = window.open(_url2, '_blank');
-  if (w2) { setTimeout(() => URL.revokeObjectURL(_url2), 10000); setTimeout(() => window.focus(), 300); }
-  else alert('Popup bloqueado. Permita popups para este site e tente novamente.');
+  const _frame2 = g('printFrame');
+  _frame2.srcdoc = _html2;
+  _frame2.onload = () => { _frame2.contentWindow.focus(); _frame2.contentWindow.print(); };
 }
 
 document.addEventListener('keydown', e => {
