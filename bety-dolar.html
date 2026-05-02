@@ -947,8 +947,7 @@ function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, g
   const pCotMin = pEntradas.length ? pEntradas.reduce((a,r) => r.cotacao < a.cotacao ? r : a) : null;
   const pCotMax = pEntradas.length ? pEntradas.reduce((a,r) => r.cotacao > a.cotacao ? r : a) : null;
 
-  const w = window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sintético — Bety</title>
+  const _html1 = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sintético — Bety</title>
   <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7pt;padding:5px 0 10px;color:#555;border-bottom:1px solid #ddd;margin-bottom:12px}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:5px 10px;margin:14px 0 4px;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:2px}th{background:#f0f0f8;padding:4px 8px;text-align:left;font-size:7pt;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid #ddd}td{padding:4px 8px;border-bottom:.5px solid #eee}.ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.ind-card{border:1px solid #e0e0ec;border-radius:6px;padding:10px 14px}.ind-lbl{font-size:7pt;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:3px}.ind-val{font-size:13pt;font-weight:700}.ind-tot{background:#1a1a2e;color:#fff;border-color:#1a1a2e}.ind-tot .ind-lbl{color:rgba(255,255,255,.5)}.ind-tot .ind-val{color:#6ee7b7}tfoot td{background:#1a1a2e;color:#fff;padding:5px 8px;font-weight:700;border:none}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
   </head><body>
   <button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button>
@@ -971,7 +970,11 @@ function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, g
   <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
   <script>window.onload=()=>window.print()<\/script>
   </body></html>`);
-  w.document.close();
+  const _blob1 = new Blob([_html1], {type:'text/html'});
+  const _url1 = URL.createObjectURL(_blob1);
+  const w1 = window.open(_url1, '_blank');
+  if (w1) setTimeout(() => URL.revokeObjectURL(_url1), 10000);
+  else alert('Popup bloqueado. Permita popups para este site e tente novamente.');
 }
 
 function printReport() {
@@ -1060,8 +1063,7 @@ function printReport() {
     return;
   }
 
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Dólar — Bety</title>
+  const _html2 = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Controle Dólar — Bety</title>
   <style>@page{size:A4;margin:12mm 14mm}@media print{.nb{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:10pt;color:#1a1a2e}.nb{position:fixed;top:10px;right:10px;padding:7px 18px;background:#1a1a2e;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:12px}.hd{background:#1a1a2e;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px}.hd h1{font-size:14pt;font-weight:700}.hd small{font-size:7pt;opacity:.5;display:block;margin-bottom:2px}.hdr{text-align:right;font-size:7pt;opacity:.65;line-height:1.6}.flt-hd{font-size:7pt;padding:5px 0 8px;color:#555;border-bottom:1px solid #ddd;margin-bottom:10px}.ch{background:#2d2d50;color:#fff;padding:4px 10px;font-size:8pt;font-weight:700;margin:12px 0 0}.sh{background:#f0f0f8;font-size:8pt;font-weight:700;padding:4px 10px;margin:14px 0 0;border-left:3px solid #2d2d50}table{width:100%;border-collapse:collapse;margin-bottom:2px;font-size:7.5pt}th{background:#f0f0f8;padding:3px 5px;text-align:left;font-size:6.5pt;font-weight:700;border-bottom:1px solid #ddd}td{padding:2.5px 5px;border-bottom:.5px solid #eee;vertical-align:middle}tfoot td,.strow td{background:#1a1a2e;color:#fff;padding:4px 5px;border:none}.mu{color:#777;font-size:7pt}.ft{margin-top:16px;font-size:6pt;color:#bbb;border-top:.5px solid #ddd;padding-top:4px;display:flex;justify-content:space-between}</style>
   </head><body>
   <button class="nb" onclick="window.print()">Imprimir / Salvar PDF</button>
@@ -1071,7 +1073,11 @@ function printReport() {
   <div class="ft"><span>Scozziero Advocacia</span><span>Gerado em ${isoD(todayISO())}</span></div>
   <script>window.onload=()=>window.print()<\/script>
   </body></html>`);
-  w.document.close();
+  const _blob2 = new Blob([_html2], {type:'text/html'});
+  const _url2 = URL.createObjectURL(_blob2);
+  const w2 = window.open(_url2, '_blank');
+  if (w2) setTimeout(() => URL.revokeObjectURL(_url2), 10000);
+  else alert('Popup bloqueado. Permita popups para este site e tente novamente.');
 }
 
 document.addEventListener('keydown', e => {
