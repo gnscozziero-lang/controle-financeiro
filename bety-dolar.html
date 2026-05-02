@@ -63,7 +63,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
 .fr{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .fs select,.fs input[type="date"],.fs input[type="number"],.fs input[type="text"],.fs input:not([type]){font-size:12px;height:30px;padding:0 9px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
 .fs select:focus,.fs input:focus{border-color:#1a1a2e}
-.fd{width:116px}.fti{width:108px}.fqr{width:160px}.fvb{width:110px}.fco{width:130px}.fds{flex:1;min-width:200px}
+.fd{width:116px}.fti{width:108px}.fqr{width:160px}.fvb{width:100px}.fco{width:118px}.fusd{width:100px}.fds{flex:1;min-width:200px}
 .usd-preview{font-size:11px;color:#059669;font-weight:600;white-space:nowrap;min-width:80px}
 .emlbl{font-size:10.5px;font-weight:500;color:#b45309;display:none;white-space:nowrap;margin-left:4px}
 .badd{height:30px;padding:0 16px;font-size:12px;font-weight:500;border-radius:6px;border:none;cursor:pointer;background:#1a1a2e;color:#fff;flex-shrink:0}
@@ -137,7 +137,7 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
 
 @media(max-width:640px){
   .hd{flex-direction:column;align-items:flex-start}.hdr{align-items:flex-start}
-  .fd,.fti,.fqr,.fvb,.fco{width:calc(50% - 3px)}.fds{width:100%}
+  .fd,.fti,.fqr,.fvb,.fco,.fusd{width:calc(50% - 3px)}.fds{width:100%}
   table{font-size:10.5px}
 }
 </style>
@@ -217,9 +217,9 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
       </select>
       <input class="fqr" id="fqr" list="dlqr" placeholder="Quem Recebeu?" autocomplete="off"/>
       <datalist id="dlqr"></datalist>
-      <input class="fvb" id="fvb" type="number" placeholder="Valor R$" min="0" step="0.01" oninput="calcUSD()"/>
-      <input class="fco" id="fco" type="number" placeholder="Cotação (R$/US$)" min="0" step="0.0001" oninput="calcUSD()"/>
-      <span class="usd-preview" id="usdprev"></span>
+      <input class="fvb" id="fvb" type="number" placeholder="Valor R$" min="0" step="0.01" oninput="calcAuto('brl')"/>
+      <input class="fco" id="fco" type="number" placeholder="Cotação (R$/US$)" min="0" step="0.0001" oninput="calcAuto('cot')"/>
+      <input class="fusd" id="fusd" type="number" placeholder="Valor US$" min="0" step="0.0001" oninput="calcAuto('usd')"/>
       <span class="emlbl" id="emlbl">✎ Editando</span>
       <button class="bcanc" id="bcanc" onclick="cancelEdit()">Cancelar</button>
       <button class="badd" id="badd" onclick="submit()">+ Lançar</button>
@@ -512,22 +512,48 @@ async function deleteRow(id) {
 }
 
 // ── FORM ──────────────────────────────────────────────
-function calcUSD() {
-  const vb = parseFloat(g('fvb').value) || 0;
-  const co = parseFloat(g('fco').value) || 0;
-  const prev = g('usdprev');
-  if (vb > 0 && co > 0) {
-    const usd = vb / co;
-    prev.textContent = '= US$ ' + fmt2(usd);
-  } else {
-    prev.textContent = '';
+// Lógica: sempre dois campos preenchidos calculam o terceiro.
+// Se cotação mudar com brl+usd preenchidos → recalcula USD.
+function calcAuto(changed) {
+  const brl = parseFloat(g('fvb').value);
+  const cot = parseFloat(g('fco').value);
+  const usd = parseFloat(g('fusd').value);
+  const hasBrl = !isNaN(brl) && brl > 0;
+  const hasCot = !isNaN(cot) && cot > 0;
+  const hasUsd = !isNaN(usd) && usd > 0;
+
+  // Highlight calculated field
+  ['fvb','fco','fusd'].forEach(id => g(id).style.background = '');
+
+  if (changed === 'cot' || (changed === 'brl' && hasBrl && hasCot)) {
+    // BRL + COT → calcula USD
+    if (hasBrl && hasCot) {
+      const calc = brl / cot;
+      g('fusd').value = calc.toFixed(4);
+      g('fusd').style.background = '#f0fdf4';
+    }
+  } else if (changed === 'usd' && hasUsd && hasCot) {
+    // USD + COT → calcula BRL
+    const calc = usd * cot;
+    g('fvb').value = calc.toFixed(2);
+    g('fvb').style.background = '#f0fdf4';
+  } else if (changed === 'brl' && hasBrl && hasUsd) {
+    // BRL + USD → calcula COT
+    const calc = brl / usd;
+    g('fco').value = calc.toFixed(4);
+    g('fco').style.background = '#f0fdf4';
+  } else if (changed === 'usd' && hasUsd && hasBrl) {
+    // USD + BRL → calcula COT
+    const calc = brl / usd;
+    g('fco').value = calc.toFixed(4);
+    g('fco').style.background = '#f0fdf4';
   }
 }
 
 function getForm() {
-  const vb = parseFloat(g('fvb').value) || 0;
-  const co = parseFloat(g('fco').value) || 0;
-  const usd = (vb > 0 && co > 0) ? vb / co : 0;
+  const vb  = parseFloat(g('fvb').value)  || 0;
+  const co  = parseFloat(g('fco').value)  || 0;
+  const usd = parseFloat(g('fusd').value) || 0;
   return {
     tipo: g('fti').value,
     quem_recebeu: g('fqr').value.trim(),
@@ -540,16 +566,15 @@ function getForm() {
 }
 
 function clrForm() {
-  ['fvb','fco','fds'].forEach(id => g(id).value = '');
+  ['fvb','fco','fusd','fds'].forEach(id => { g(id).value = ''; g(id).style.background = ''; });
   g('fqr').value = '';
   g('fd').value = todayISO();
-  g('usdprev').textContent = '';
 }
 
 async function submit() {
   const f = getForm();
-  if (!f.valor_brl || f.valor_brl <= 0) { g('fvb').focus(); return; }
-  if (!f.cotacao || f.cotacao <= 0) { g('fco').focus(); return; }
+  if (!f.valor_usd || f.valor_usd <= 0) { alert('Preencha ao menos dois campos: Valor R$, Cotação ou Valor US$.'); return; }
+  if (!f.valor_brl || f.valor_brl <= 0) { alert('Preencha ao menos dois campos: Valor R$, Cotação ou Valor US$.'); return; }
   g('badd').disabled = true;
   if (editId !== null) { await updateRow(editId, f); cancelEdit(); }
   else { await insertRow(f); clrForm(); }
@@ -565,8 +590,8 @@ function startEdit(id) {
   g('fqr').value = r.quem_recebeu;
   g('fvb').value = r.valor_brl;
   g('fco').value = r.cotacao;
+  g('fusd').value = r.valor_usd;
   g('fds').value = r.desc;
-  calcUSD();
   g('fs').classList.add('em');
   g('badd').textContent = 'Salvar';
   g('badd').classList.add('sv');
@@ -578,6 +603,7 @@ function startEdit(id) {
 
 function cancelEdit() {
   editId = null; clrForm();
+  ['fvb','fco','fusd'].forEach(id => g(id).style.background = '');
   g('fti').value = 'E';
   g('fs').classList.remove('em');
   g('badd').textContent = '+ Lançar';
