@@ -1055,10 +1055,7 @@ function printReport() {
       </tr>
     </tfoot></table>`;
 
-  const printMode = currentView === 'sintetica' ? 'sintetica' :
-    (confirm('Clique OK para versão Analítica (todos os movimentos)\nCancele para versão Sintética (somente resumo)') ? 'analitica' : 'sintetica');
-
-  if (printMode === 'sintetica') {
+  if (currentView === 'sintetica') {
     printSintetica(vis, fltParts, saldoAtual, pCotMedia, pSomaBrl, pSomaUsd, gBrl, gUsd, quems);
     return;
   }
