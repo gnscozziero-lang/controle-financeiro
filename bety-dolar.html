@@ -973,7 +973,7 @@ function printSintetica(vis, fltParts, saldoAtual, cotMedia, somaBrl, somaUsd, g
   const _blob1 = new Blob([_html1], {type:'text/html'});
   const _url1 = URL.createObjectURL(_blob1);
   const w1 = window.open(_url1, '_blank');
-  if (w1) setTimeout(() => URL.revokeObjectURL(_url1), 10000);
+  if (w1) { setTimeout(() => URL.revokeObjectURL(_url1), 10000); setTimeout(() => window.focus(), 300); }
   else alert('Popup bloqueado. Permita popups para este site e tente novamente.');
 }
 
@@ -1076,7 +1076,7 @@ function printReport() {
   const _blob2 = new Blob([_html2], {type:'text/html'});
   const _url2 = URL.createObjectURL(_blob2);
   const w2 = window.open(_url2, '_blank');
-  if (w2) setTimeout(() => URL.revokeObjectURL(_url2), 10000);
+  if (w2) { setTimeout(() => URL.revokeObjectURL(_url2), 10000); setTimeout(() => window.focus(), 300); }
   else alert('Popup bloqueado. Permita popups para este site e tente novamente.');
 }
 
