@@ -101,6 +101,30 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
 .sv-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#f59e0b;flex-shrink:0}
 .sv-ok{background:#10b981}.sv-err{background:#ef4444}.sv-ld{background:#f59e0b}
 
+/* transfer */
+.pt{background:#7c3aed;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;font-size:9px;color:#fff;flex-shrink:0}
+.transfer-row{background:#faf5ff!important}
+.transfer-row td{color:#6d28d9}
+.tr-label{font-size:9px;font-weight:600;color:#7c3aed;letter-spacing:.04em;text-transform:uppercase}
+/* transfer modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8888;display:none;align-items:center;justify-content:center}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px 28px 24px;width:440px;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.modal h3{font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:4px}
+.modal p{font-size:11px;color:#888;margin-bottom:20px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.modal-grid label{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#666;display:block;margin-bottom:3px}
+.modal-grid input,.modal-grid select{width:100%;font-size:12px;height:30px;padding:0 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a2e;outline:none}
+.modal-grid input:focus,.modal-grid select:focus{border-color:#7c3aed}
+.modal-full{grid-column:1/-1}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.mbtn-ok{height:32px;padding:0 18px;font-size:12px;font-weight:600;border-radius:6px;border:none;cursor:pointer;background:#7c3aed;color:#fff}
+.mbtn-ok:hover{background:#6d28d9}
+.mbtn-ok:disabled{opacity:.5;cursor:not-allowed}
+.mbtn-cl{height:32px;padding:0 14px;font-size:12px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:none;color:#666}
+.modal-err{font-size:11px;color:#ef4444;margin-top:8px;min-height:14px}
+.hbtn-tr{background:rgba(124,58,237,.25)!important;border-color:rgba(167,139,250,.5)!important;color:#c4b5fd!important}
+.hbtn-tr:hover{background:rgba(124,58,237,.4)!important}
 /* login */
 .login-overlay{position:fixed;inset:0;background:#1a1a2e;display:flex;align-items:center;justify-content:center;z-index:9999}
 .login-box{background:#fff;border-radius:16px;padding:36px 32px;width:320px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.35)}
@@ -137,6 +161,53 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
   </div>
 </div>
 
+<!-- TRANSFER MODAL -->
+<div class="modal-bg" id="transferModal">
+  <div class="modal">
+    <h3>⇄ Transferência entre contas</h3>
+    <p>Cria automaticamente saída na origem e entrada no destino.</p>
+    <div class="modal-grid">
+      <div>
+        <label>Data</label>
+        <input type="date" id="tr-data"/>
+      </div>
+      <div>
+        <label>Moeda</label>
+        <select id="tr-moeda">
+          <option value="BRL">BRL R$</option><option value="USD">USD US$</option>
+          <option value="EUR">EUR €</option><option value="GBP">GBP £</option>
+          <option value="ARS">ARS $</option><option value="CNY">CNY ¥</option>
+          <option value="CHF">CHF Fr</option><option value="PYG">PYG ₲</option>
+          <option value="UYU">UYU $U</option>
+        </select>
+      </div>
+      <div>
+        <label>Conta Origem</label>
+        <input list="dlc-tr" id="tr-orig" placeholder="De qual conta" autocomplete="off"/>
+        <datalist id="dlc-tr"></datalist>
+      </div>
+      <div>
+        <label>Conta Destino</label>
+        <input list="dlc-tr2" id="tr-dest" placeholder="Para qual conta" autocomplete="off"/>
+        <datalist id="dlc-tr2"></datalist>
+      </div>
+      <div>
+        <label>Valor</label>
+        <input type="number" id="tr-valor" placeholder="0,00" min="0" step="0.01"/>
+      </div>
+      <div>
+        <label>Descrição (opcional)</label>
+        <input type="text" id="tr-desc" placeholder="Ex: Reserva mensal"/>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn-cl" onclick="closeTransfer()">Cancelar</button>
+      <button class="mbtn-ok" id="tr-btn" onclick="submitTransfer()">Confirmar transferência</button>
+    </div>
+    <div class="modal-err" id="tr-err"></div>
+  </div>
+</div>
+
 <div class="sheet">
 
   <div class="hd">
@@ -147,6 +218,7 @@ tfoot tr td.sub-lbl{opacity:.6;font-weight:400;font-size:9px;letter-spacing:.05e
     <div class="hdr">
       <div class="hd-btns">
         <span class="rbg rb-ld" id="rbg" onclick="fetchRates()">Câmbio...</span>
+        <button class="hbtn hbtn-tr" onclick="openTransfer()">⇄ Transferência</button>
         <button class="hbtn" onclick="exportJSON()">Backup JSON</button>
         <label class="hbtn" style="cursor:pointer">Importar JSON<input type="file" id="impFile" accept=".json" style="display:none" onchange="importJSON(event)"/></label>
         <button class="hbtn" onclick="printReport()">Imprimir / PDF</button>
@@ -329,7 +401,7 @@ async function loadData(){
     rows=(data||[]).map(r=>({
       id:r.id,data:r.data,tipo:r.tipo,conta:r.conta||'',
       moeda:r.moeda,valor:parseFloat(r.valor),precomed:r.precomed||'',
-      origem:r.origem||'',desc:r.descricao||''
+      origem:r.origem||'',desc:r.descricao||'',transferId:r.transfer_id||null
     }));
     updDL(); updContaSel();
     setSave('ok',rows.length+' lançamento(s) carregado(s)');
@@ -347,7 +419,7 @@ async function insertRow(f){
     if(error)throw error;
     rows.push({id:data.id,data:data.data,tipo:data.tipo,conta:data.conta||'',
       moeda:data.moeda,valor:parseFloat(data.valor),precomed:data.precomed||'',
-      origem:data.origem||'',desc:data.descricao||''});
+      origem:data.origem||'',desc:data.descricao||'',transferId:null});
     updDL(); updContaSel(); render();
     setSave('ok','Salvo · '+rows.length+' lançamento(s)');
   }catch(e){setSave('err','Erro ao salvar: '+e.message);}
@@ -369,13 +441,24 @@ async function updateRow(id,f){
 }
 
 async function deleteRow(id){
-  if(!confirm('Excluir este lançamento?'))return;
+  const r=rows.find(x=>x.id===id);
+  const isTransfer=r&&r.transferId;
+  const msg=isTransfer
+    ?'Excluir esta transferência? Os dois lançamentos vinculados serão removidos.'
+    :'Excluir este lançamento?';
+  if(!confirm(msg))return;
   if(editId===id)cancelEdit();
   setSave('ld','Excluindo...');
   try{
-    const{error}=await db.from('lancamentos').delete().eq('id',id);
-    if(error)throw error;
-    rows=rows.filter(r=>r.id!==id);
+    if(isTransfer){
+      const{error}=await db.from('lancamentos').delete().eq('transfer_id',r.transferId);
+      if(error)throw error;
+      rows=rows.filter(x=>x.transferId!==r.transferId);
+    }else{
+      const{error}=await db.from('lancamentos').delete().eq('id',id);
+      if(error)throw error;
+      rows=rows.filter(x=>x.id!==id);
+    }
     updDL(); updContaSel(); render();
     setSave('ok',rows.length+' lançamento(s)');
   }catch(e){setSave('err','Erro ao excluir: '+e.message);}
@@ -420,7 +503,56 @@ function updBadge(){
 }
 
 function updDL(){
-  g('dlc').innerHTML=[...new Set(rows.filter(r=>r.conta).map(r=>r.conta))].map(c=>`<option value="${c}">`).join('');
+  const contas=[...new Set(rows.filter(r=>r.conta).map(r=>r.conta))];
+  g('dlc').innerHTML=contas.map(c=>`<option value="${c}">`).join('');
+  g('dlc-tr').innerHTML=contas.map(c=>`<option value="${c}">`).join('');
+  g('dlc-tr2').innerHTML=contas.map(c=>`<option value="${c}">`).join('');
+}
+
+// ── TRANSFER ───────────────────────────────────────────────
+function openTransfer(){
+  g('tr-data').value=todayISO();
+  g('tr-orig').value=''; g('tr-dest').value='';
+  g('tr-valor').value=''; g('tr-desc').value='';
+  g('tr-err').textContent='';
+  g('transferModal').classList.add('on');
+  g('tr-orig').focus();
+}
+function closeTransfer(){g('transferModal').classList.remove('on');}
+
+async function submitTransfer(){
+  const data=g('tr-data').value||todayISO();
+  const moeda=g('tr-moeda').value;
+  const orig=g('tr-orig').value.trim();
+  const dest=g('tr-dest').value.trim();
+  const valor=parseFloat(g('tr-valor').value)||0;
+  const desc=g('tr-desc').value.trim();
+  g('tr-err').textContent='';
+  if(!orig){g('tr-err').textContent='Informe a conta origem.';g('tr-orig').focus();return;}
+  if(!dest){g('tr-err').textContent='Informe a conta destino.';g('tr-dest').focus();return;}
+  if(orig===dest){g('tr-err').textContent='Origem e destino não podem ser iguais.';return;}
+  if(!valor||valor<=0){g('tr-err').textContent='Informe um valor válido.';g('tr-valor').focus();return;}
+  g('tr-btn').disabled=true;
+  setSave('ld','Registrando transferência...');
+  const tid='tr-'+Date.now();
+  const descFinal=desc||(orig+' → '+dest);
+  try{
+    const{data:ins,error}=await db.from('lancamentos').insert([
+      {data,tipo:'S',conta:orig,moeda,valor,descricao:descFinal,origem:dest,transfer_id:tid},
+      {data,tipo:'E',conta:dest,moeda,valor,descricao:descFinal,origem:orig,transfer_id:tid}
+    ]).select();
+    if(error)throw error;
+    ins.forEach(r=>rows.push({id:r.id,data:r.data,tipo:r.tipo,conta:r.conta||'',
+      moeda:r.moeda,valor:parseFloat(r.valor),precomed:'',
+      origem:r.origem||'',desc:r.descricao||'',transferId:r.transfer_id}));
+    updDL(); updContaSel(); render();
+    setSave('ok','Transferência registrada · '+rows.length+' lançamento(s)');
+    closeTransfer();
+  }catch(e){
+    g('tr-err').textContent='Erro: '+e.message;
+    setSave('err','Erro ao registrar transferência');
+  }
+  g('tr-btn').disabled=false;
 }
 
 // ── FORM ───────────────────────────────────────────────────
@@ -522,9 +654,27 @@ function render(){
       const sym=SYM[r.moeda]||r.moeda,vc=r.tipo==='E'?'ve':'vs';
       const signed=(r.tipo==='S'?'– ':'')+sym+' '+fmt(r.valor);
       const rt=getRate(r.moeda);const brl=toBRL(r);
+      const brlH=brl!==null?`<span class="${brl>=0?'bp':'bn'}">${brl>=0?'+ ':'– '}R$ ${fmt(brl)}</span>`:`<span class="bnd">N/D</span>`;
+      if(r.transferId){
+        // transfer row — no edit, delete removes both
+        const arrow=r.tipo==='E'?'↙':'↗';
+        return`<tr class="transfer-row">
+          <td><span class="pt">⇄</span></td>
+          <td style="font-size:10.5px">${isoD(r.data)}</td>
+          <td title="${r.conta||''}">${r.conta||'—'}</td>
+          <td title="${r.desc||''}" style="font-style:italic">${r.desc||'—'}</td>
+          <td title="${r.origem||''}"><span style="font-size:9px;opacity:.6">${arrow}</span> ${r.origem||'—'}</td>
+          <td style="font-size:10.5px">${r.moeda}</td>
+          <td class="${vc}">${signed}</td>
+          <td><span class="tr-label">transferência</span></td>
+          <td style="font-size:10.5px;color:#888">${rt&&r.moeda!=='BRL'?fmtTx(rt):'—'}</td>
+          <td>${brlH}</td>
+          <td></td>
+          <td><button class="bdl" onclick="deleteRow(${r.id})" title="Excluir transferência">✕</button></td>
+        </tr>`;
+      }
       const pmH=r.precomed?`<span class="pm-val">R$ ${r.precomed}</span>`:`<span class="bnd">—</span>`;
       const txH=rt&&r.moeda!=='BRL'?`<span class="tx-val">${fmtTx(rt)}</span>`:`<span class="tx-val">—</span>`;
-      const brlH=brl!==null?`<span class="${brl>=0?'bp':'bn'}">${brl>=0?'+ ':'– '}R$ ${fmt(brl)}</span>`:`<span class="bnd">N/D</span>`;
       const eC=editId===r.id?' class="editing-row"':'';
       return`<tr${eC}><td><span class="pill p${r.tipo.toLowerCase()}"></span></td><td style="color:#888;font-size:10.5px">${isoD(r.data)}</td><td title="${r.conta||''}">${r.conta||'—'}</td><td title="${r.desc||''}">${r.desc||'—'}</td><td title="${r.origem||''}">${r.origem||'—'}</td><td style="color:#888;font-size:10.5px">${r.moeda}</td><td class="${vc}">${signed}</td><td>${pmH}</td><td>${txH}</td><td>${brlH}</td><td><button class="be" onclick="startEdit(${r.id})" title="Editar">✎</button></td><td><button class="bdl" onclick="deleteRow(${r.id})" title="Excluir">✕</button></td></tr>`;
     }).join('');
@@ -676,7 +826,11 @@ async function checkPin(){
   g('loginBtn').disabled=false;
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement?.id!=='badd')submit();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeTransfer();
+  if(e.key==='Enter'&&document.activeElement?.id!=='badd'&&!g('transferModal').classList.contains('on'))submit();
+});
+document.getElementById('transferModal').addEventListener('click',e=>{if(e.target===g('transferModal'))closeTransfer();});
 g('p1').focus();
 </script>
 </body>
